@@ -5,7 +5,7 @@ import {
   useEffect,
   useState,
 } from "react";
-import Loading from "../components/Loading";
+import H23Loader from "../components/H23Loader";
 
 interface LoadingType {
   isLoading: boolean;
@@ -28,7 +28,7 @@ export const LoadingProvider = ({ children }: PropsWithChildren) => {
 
   return (
     <LoadingContext.Provider value={value as LoadingType}>
-      {isLoading && <Loading percent={loading} />}
+      {isLoading && <H23Loader />}
       <main className="main-body">{children}</main>
     </LoadingContext.Provider>
   );

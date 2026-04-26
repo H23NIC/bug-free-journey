@@ -1,54 +1,145 @@
 import { useEffect, useRef } from "react";
 import "./styles/Cursor.css";
-import gsap from "gsap";
 
 const Cursor = () => {
-  const cursorRef = useRef<HTMLDivElement>(null);
+  const canvasRef = useRef<HTMLCanvasElement>(null);
+
   useEffect(() => {
-    let hover = false;
-    const cursor = cursorRef.current!;
-    const mousePos = { x: 0, y: 0 };
-    const cursorPos = { x: 0, y: 0 };
-    document.addEventListener("mousemove", (e) => {
-      mousePos.x = e.clientX;
-      mousePos.y = e.clientY;
-    });
-    requestAnimationFrame(function loop() {
-      if (!hover) {
-        const delay = 6;
-        cursorPos.x += (mousePos.x - cursorPos.x) / delay;
-        cursorPos.y += (mousePos.y - cursorPos.y) / delay;
-        gsap.to(cursor, { x: cursorPos.x, y: cursorPos.y, duration: 0.1 });
-        // cursor.style.transform = `translate(${cursorPos.x}px, ${cursorPos.y}px)`;
+    const canvas = canvasRef.current;
+    if (!canvas) return;
+
+    const ctx = canvas.getContext("2d");
+    if (!ctx) return;
+
+    let width = (canvas.width = window.innerWidth);
+    let height = (canvas.height = window.innerHeight);
+
+    interface StarData {
+      x: number;
+      y: number;
+      size: number;
+      maxSize: number;
+      life: number;
+      speedX: number;
+      speedY: number;
+      twinkleOffset: number;
+    }
+
+    const stars: StarData[] = [];
+    const mouse = { x: 0, y: 0 };
+    const lastMouse = { x: 0, y: 0 };
+
+    const createStar = (x: number, y: number) => {
+      stars.push({
+        x,
+        y,
+        maxSize: Math.random() * 4 + 1.5,
+        size: 0.1,
+        life: 1,
+        speedX: (Math.random() - 0.5) * 0.8,
+        speedY: (Math.random() - 0.5) * 0.8,
+        twinkleOffset: Math.random() * Math.PI * 2,
+      });
+    };
+
+    const handleMouseMove = (e: MouseEvent) => {
+      mouse.x = e.clientX;
+      mouse.y = e.clientY;
+
+      const dist = Math.hypot(mouse.x - lastMouse.x, mouse.y - lastMouse.y);
+      if (dist > 8) {
+        createStar(mouse.x, mouse.y);
+        lastMouse.x = mouse.x;
+        lastMouse.y = mouse.y;
       }
-      requestAnimationFrame(loop);
-    });
-    document.querySelectorAll("[data-cursor]").forEach((item) => {
-      const element = item as HTMLElement;
-      element.addEventListener("mouseover", (e: MouseEvent) => {
-        const target = e.currentTarget as HTMLElement;
-        const rect = target.getBoundingClientRect();
+    };
 
-        if (element.dataset.cursor === "icons") {
-          cursor.classList.add("cursor-icons");
+    const handleResize = () => {
+      width = canvas.width = window.innerWidth;
+      height = canvas.height = window.innerHeight;
+    };
 
-          gsap.to(cursor, { x: rect.left, y: rect.top, duration: 0.1 });
-          //   cursor.style.transform = `translate(${rect.left}px,${rect.top}px)`;
-          cursor.style.setProperty("--cursorH", `${rect.height}px`);
-          hover = true;
+    window.addEventListener("mousemove", handleMouseMove);
+    window.addEventListener("resize", handleResize);
+
+    const drawStar = (star: StarData) => {
+      if (!ctx) return;
+      
+      const twinkle = Math.sin(Date.now() * 0.005 + star.twinkleOffset) * 0.3 + 0.7;
+      const opacity = star.life * twinkle;
+      
+      ctx.save();
+      ctx.translate(star.x, star.y);
+      ctx.beginPath();
+      
+      const r = star.size;
+      const spikes = 4;
+      const outerRadius = r;
+      const innerRadius = r * 0.2;
+      
+      let rot = (Math.PI / 2) * 3;
+      let x = 0;
+      let y = 0;
+      const step = Math.PI / spikes;
+
+      ctx.moveTo(0, -outerRadius);
+      for (let i = 0; i < spikes; i++) {
+        x = Math.cos(rot) * outerRadius;
+        y = Math.sin(rot) * outerRadius;
+        ctx.lineTo(x, y);
+        rot += step;
+
+        x = Math.cos(rot) * innerRadius;
+        y = Math.sin(rot) * innerRadius;
+        ctx.lineTo(x, y);
+        rot += step;
+      }
+      ctx.lineTo(0, -outerRadius);
+      ctx.closePath();
+
+      ctx.fillStyle = `rgba(255, 255, 255, ${opacity})`;
+      ctx.shadowBlur = 10;
+      ctx.shadowColor = "white";
+      ctx.fill();
+      ctx.restore();
+    };
+
+    const animate = () => {
+      ctx.clearRect(0, 0, width, height);
+      
+      for (let i = stars.length - 1; i >= 0; i--) {
+        const star = stars[i];
+        star.x += star.speedX;
+        star.y += star.speedY;
+        star.life -= 0.01;
+        
+        if (star.size < star.maxSize) {
+          star.size += 0.15;
         }
-        if (element.dataset.cursor === "disable") {
-          cursor.classList.add("cursor-disable");
+
+        drawStar(star);
+
+        if (star.life <= 0) {
+          stars.splice(i, 1);
         }
-      });
-      element.addEventListener("mouseout", () => {
-        cursor.classList.remove("cursor-disable", "cursor-icons");
-        hover = false;
-      });
-    });
+      }
+      requestAnimationFrame(animate);
+    };
+
+    animate();
+
+    return () => {
+      window.removeEventListener("mousemove", handleMouseMove);
+      window.removeEventListener("resize", handleResize);
+    };
   }, []);
 
-  return <div className="cursor-main" ref={cursorRef}></div>;
+  return (
+    <div className="cursor-main">
+      <canvas ref={canvasRef} />
+    </div>
+  );
 };
 
 export default Cursor;
+
