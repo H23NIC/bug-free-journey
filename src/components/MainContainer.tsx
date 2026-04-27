@@ -8,6 +8,8 @@ import SocialIcons from "./SocialIcons";
 import WhatIDo from "./WhatIDo";
 import Work from "./Work";
 import setSplitText from "./utils/splitText";
+import RadialMenu from "./RadialMenu";
+import DocsVault from "./DocsVault";
 
 import { gsap } from "gsap";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
@@ -17,6 +19,7 @@ gsap.registerPlugin(ScrollSmoother, ScrollTrigger);
 export let smoother: ScrollSmoother;
 
 const MainContainer = ({ children }: PropsWithChildren) => {
+  const [showDocs, setShowDocs] = useState(false);
   const [isDesktopView, setIsDesktopView] = useState<boolean>(
     window.innerWidth > 1024
   );
@@ -53,6 +56,8 @@ const MainContainer = ({ children }: PropsWithChildren) => {
     <div className="container-main">
       <Cursor />
       <SocialIcons />
+      <RadialMenu onOpenDocs={() => setShowDocs(true)} />
+      <DocsVault isOpen={showDocs} onClose={() => setShowDocs(false)} />
       
       <div id="smooth-wrapper">
         <div id="smooth-content">

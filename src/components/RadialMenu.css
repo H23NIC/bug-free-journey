@@ -1,0 +1,141 @@
+.radial-menu-container {
+  position: fixed;
+  z-index: 1000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  user-select: none;
+  /* Crucial: let through clicks to background unless on active elements */
+  pointer-events: none;
+  width: 300px;
+  height: 300px;
+  margin-top: -150px;
+  margin-left: -150px;
+}
+
+.menu-trigger {
+  width: 60px;
+  height: 60px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: grab;
+  z-index: 1002;
+  transition: transform 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275), color 0.3s ease;
+  color: white;
+  font-size: 24px;
+  pointer-events: all; /* Make trigger clickable */
+}
+
+.menu-trigger:active {
+  cursor: grabbing;
+}
+
+.menu-trigger:hover {
+  transform: scale(1.2);
+}
+
+.menu-trigger.open {
+  transform: rotate(90deg);
+}
+
+.reset-icon {
+  position: absolute;
+  top: 100px; /* Adjusted for larger container */
+  left: 150px;
+  transform: translateX(-50%);
+  color: rgba(255, 255, 255, 0.6);
+  font-size: 20px;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  opacity: 0;
+  pointer-events: none;
+  z-index: 1005;
+}
+
+.reset-icon.visible {
+  opacity: 1;
+  pointer-events: all;
+  top: 90px;
+}
+
+.reset-icon:hover {
+  color: white;
+  transform: translateX(-50%) scale(1.2);
+}
+
+.radial-options {
+  position: absolute;
+  width: 0;
+  height: 0;
+  border-radius: 50%;
+  background: radial-gradient(circle, rgba(100, 100, 255, 0.2) 0%, rgba(200, 100, 255, 0.1) 100%);
+  backdrop-filter: blur(8px);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.5s cubic-bezier(0.19, 1, 0.22, 1);
+  opacity: 0;
+  pointer-events: none;
+  z-index: 1001;
+  left: 150px;
+  top: 150px;
+  transform: translate(-50%, -50%);
+}
+
+.radial-options.open {
+  width: 200px;
+  height: 200px;
+  opacity: 1;
+  pointer-events: all;
+  box-shadow: 0 0 50px rgba(100, 100, 255, 0.2);
+}
+
+.menu-item {
+  position: absolute;
+  width: 44px;
+  height: 44px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: white;
+  text-decoration: none;
+  font-size: 26px;
+  transition: opacity 0.4s ease, transform 0.4s cubic-bezier(0.19, 1, 0.22, 1);
+  opacity: 0;
+  pointer-events: all; /* Important: Icons must be clickable */
+}
+
+.radial-options.open .menu-item {
+  opacity: 1;
+}
+
+.menu-item:hover {
+  color: #4facfe;
+  filter: drop-shadow(0 0 8px rgba(79, 172, 254, 0.8));
+}
+
+/* Stable radial positions - right-side spread */
+.item-1 { transform: translate(65px, -65px) scale(0); }
+.item-2 { transform: translate(90px, 0) scale(0); }
+.item-3 { transform: translate(65px, 65px) scale(0); }
+
+.radial-options.open .item-1 { transform: translate(65px, -65px) scale(1); }
+.radial-options.open .item-2 { transform: translate(90px, 0) scale(1); }
+.radial-options.open .item-3 { transform: translate(65px, 65px) scale(1); }
+
+/* Draggable cursor indicator */
+.drag-cursor {
+  position: fixed;
+  pointer-events: none;
+  z-index: 10000;
+  color: white;
+  font-size: 24px;
+  opacity: 0;
+  transition: opacity 0.2s ease;
+}
+
+.dragging .drag-cursor {
+  opacity: 1;
+}
