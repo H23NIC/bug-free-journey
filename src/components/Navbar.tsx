@@ -4,6 +4,7 @@ import HoverLinks from "./HoverLinks";
 import { gsap } from "gsap";
 import { ScrollSmoother } from "gsap-trial/ScrollSmoother";
 import "./styles/Navbar.css";
+import "./styles/BrandMark.css";
 
 gsap.registerPlugin(ScrollSmoother, ScrollTrigger);
 export let smoother: ScrollSmoother;
@@ -42,8 +43,10 @@ const Navbar = () => {
   return (
     <>
       <div className="header">
-        <a href="/#" className="navbar-title" data-cursor="disable">
-          Logo
+        <a href="/#" className="navbar-title brandmark" data-cursor="disable" aria-label="H23 — Home">
+          <span className="bm-h">H</span>
+          <span className="bm-23">23</span>
+          <span className="bm-dot" aria-hidden="true" />
         </a>
         <a
           href="mailto:example@mail.com"

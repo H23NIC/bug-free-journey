@@ -1,0 +1,103 @@
+/* ════════════════════════════════════════════
+   H23 Brand Mark — Navbar Logo
+   Palette: Obsidian · Deep Indigo · Champagne Gold
+════════════════════════════════════════════ */
+
+@import url('https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700&family=Inter:wght@400;600&display=swap');
+
+.brandmark {
+  display: inline-flex;
+  align-items: baseline;
+  gap: 0;
+  text-decoration: none;
+  position: relative;
+  cursor: pointer;
+  user-select: none;
+
+  /* Subtle press effect */
+  transition: transform 0.18s ease, opacity 0.18s ease;
+}
+
+.brandmark:hover {
+  opacity: 0.88;
+  transform: translateY(-1px);
+}
+
+.brandmark:active {
+  transform: scale(0.97);
+}
+
+/* ── H (classic serif, indigo → violet gradient) ── */
+.bm-h {
+  font-family: 'Playfair Display', Georgia, serif;
+  font-weight: 700;
+  font-size: clamp(20px, 2.2vw, 28px);
+  line-height: 1;
+  letter-spacing: -0.01em;
+
+  background: linear-gradient(135deg, #e8e0ff 0%, #9b6dff 45%, #5b21b6 100%);
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
+
+  /* Subtle text-shadow glow trick via drop-filter */
+  filter: drop-shadow(0 0 6px rgba(123, 47, 255, 0.45));
+
+  transition: filter 0.3s ease;
+}
+
+.brandmark:hover .bm-h {
+  filter: drop-shadow(0 0 10px rgba(123, 47, 255, 0.7));
+}
+
+/* ── 23 (condensed sans, champagne gold) ── */
+.bm-23 {
+  font-family: 'Inter', 'Segoe UI', sans-serif;
+  font-weight: 600;
+  font-size: clamp(13px, 1.35vw, 17px);
+  line-height: 1;
+  letter-spacing: 0.04em;
+
+  background: linear-gradient(135deg, #f5e098 0%, #c9a94e 55%, #8a6a1a 100%);
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
+
+  /* Align to bottom of H */
+  align-self: flex-end;
+  padding-bottom: 0.05em;
+  margin-left: 1px;
+
+  transition: filter 0.3s ease;
+}
+
+.brandmark:hover .bm-23 {
+  filter: drop-shadow(0 0 8px rgba(201, 169, 78, 0.6));
+}
+
+/* ── Gold accent dot ── */
+.bm-dot {
+  display: inline-block;
+  width: clamp(4px, 0.45vw, 6px);
+  height: clamp(4px, 0.45vw, 6px);
+  border-radius: 50%;
+  background: linear-gradient(135deg, #f5e098, #c9a94e);
+  box-shadow: 0 0 6px 2px rgba(201, 169, 78, 0.55);
+  align-self: flex-end;
+  margin-left: 3px;
+  margin-bottom: clamp(3px, 0.4vw, 5px);
+
+  /* Pulsing glow animation */
+  animation: dotPulse 2.4s ease-in-out infinite;
+}
+
+@keyframes dotPulse {
+  0%, 100% {
+    box-shadow: 0 0 5px 1px rgba(201, 169, 78, 0.5);
+    opacity: 1;
+  }
+  50% {
+    box-shadow: 0 0 10px 4px rgba(201, 169, 78, 0.85);
+    opacity: 0.85;
+  }
+}
