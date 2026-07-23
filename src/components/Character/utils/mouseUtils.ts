@@ -13,9 +13,11 @@ export const handleTouchMove = (
   event: TouchEvent,
   setMousePosition: (x: number, y: number) => void
 ) => {
-  const mouseX = (event.touches[0].clientX / window.innerWidth) * 2 - 1;
-  const mouseY = -(event.touches[0].clientY / window.innerHeight) * 2 + 1;
-  setMousePosition(mouseX, mouseY);
+  if (event.touches.length > 0) {
+    const mouseX = (event.touches[0].clientX / window.innerWidth) * 2 - 1;
+    const mouseY = -(event.touches[0].clientY / window.innerHeight) * 2 + 1;
+    setMousePosition(mouseX, mouseY);
+  }
 };
 
 export const handleTouchEnd = (
@@ -34,49 +36,33 @@ export const handleTouchEnd = (
   }, 2000);
 };
 
-export const handleHeadRotation = (
-  headBone: THREE.Object3D,
+export const handleCarRotation = (
+  carObj: THREE.Object3D,
   mouseX: number,
   mouseY: number,
   interpolationX: number,
   interpolationY: number,
-  lerp: (x: number, y: number, t: number) => number
+  lerp: (x: number, y: number, t: number) => number,
+  baseRotationY: number = 0,
+  baseRotationX: number = 0
 ) => {
-  if (!headBone) return;
+  if (!carObj) return;
   if (window.scrollY < 200) {
-    const maxRotation = Math.PI / 6;
-    headBone.rotation.y = lerp(
-      headBone.rotation.y,
-      mouseX * maxRotation,
+    const maxRotationY = Math.PI / 8; // subtle tilt angle
+    const maxRotationX = Math.PI / 16;
+    
+    carObj.rotation.y = lerp(
+      carObj.rotation.y,
+      baseRotationY + mouseX * maxRotationY,
       interpolationY
     );
-    let minRotationX = -0.3;
-    let maxRotationX = 0.4;
-    if (mouseY > minRotationX) {
-      if (mouseY < maxRotationX) {
-        headBone.rotation.x = lerp(
-          headBone.rotation.x,
-          -mouseY - 0.5 * maxRotation,
-          interpolationX
-        );
-      } else {
-        headBone.rotation.x = lerp(
-          headBone.rotation.x,
-          -maxRotation - 0.5 * maxRotation,
-          interpolationX
-        );
-      }
-    } else {
-      headBone.rotation.x = lerp(
-        headBone.rotation.x,
-        -minRotationX - 0.5 * maxRotation,
-        interpolationX
-      );
-    }
-  } else {
-    if (window.innerWidth > 1024) {
-      headBone.rotation.x = lerp(headBone.rotation.x, -0.4, 0.03);
-      headBone.rotation.y = lerp(headBone.rotation.y, -0.3, 0.03);
-    }
+    carObj.rotation.x = lerp(
+      carObj.rotation.x,
+      baseRotationX - mouseY * maxRotationX,
+      interpolationX
+    );
   }
 };
+
+// Backwards compatibility alias
+export const handleHeadRotation = handleCarRotation;

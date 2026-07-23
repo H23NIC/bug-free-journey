@@ -31,22 +31,24 @@ export default function setSplitText() {
       linesClass: "split-line",
     });
 
-    para.anim = gsap.fromTo(
-      para.split.words,
-      { autoAlpha: 0, y: 80 },
-      {
-        autoAlpha: 1,
-        scrollTrigger: {
-          trigger: para.parentElement?.parentElement,
-          toggleActions: ToggleAction,
-          start: TriggerStart,
-        },
-        duration: 1,
-        ease: "power3.out",
-        y: 0,
-        stagger: 0.02,
-      }
-    );
+    if (para.split) {
+      para.anim = gsap.fromTo(
+        para.split.words,
+        { autoAlpha: 0, y: 80 },
+        {
+          autoAlpha: 1,
+          scrollTrigger: {
+            trigger: para.parentElement?.parentElement,
+            toggleActions: ToggleAction,
+            start: TriggerStart,
+          },
+          duration: 1,
+          ease: "power3.out",
+          y: 0,
+          stagger: 0.02,
+        }
+      );
+    }
   });
   titles.forEach((title: ParaElement) => {
     if (title.anim) {
@@ -57,23 +59,25 @@ export default function setSplitText() {
       type: "chars,lines",
       linesClass: "split-line",
     });
-    title.anim = gsap.fromTo(
-      title.split.chars,
-      { autoAlpha: 0, y: 80, rotate: 10 },
-      {
-        autoAlpha: 1,
-        scrollTrigger: {
-          trigger: title.parentElement?.parentElement,
-          toggleActions: ToggleAction,
-          start: TriggerStart,
-        },
-        duration: 0.8,
-        ease: "power2.inOut",
-        y: 0,
-        rotate: 0,
-        stagger: 0.03,
-      }
-    );
+    if (title.split) {
+      title.anim = gsap.fromTo(
+        title.split.chars,
+        { autoAlpha: 0, y: 80, rotate: 10 },
+        {
+          autoAlpha: 1,
+          scrollTrigger: {
+            trigger: title.parentElement?.parentElement,
+            toggleActions: ToggleAction,
+            start: TriggerStart,
+          },
+          duration: 0.8,
+          ease: "power2.inOut",
+          y: 0,
+          rotate: 0,
+          stagger: 0.03,
+        }
+      );
+    }
   });
 
   ScrollTrigger.addEventListener("refresh", () => setSplitText());

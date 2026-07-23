@@ -13,7 +13,7 @@ interface DocItem {
     y: number;
 }
 
-const CATEGORIES = ["GitHub Cmds", "Windows Cmd", "Linux", "Kali Linux", "HackerOne", "Bug Bounty Tools"];
+export const CATEGORIES = ["GitHub Cmds", "Windows Cmd", "Linux", "Kali Linux", "HackerOne", "Bug Bounty Tools"];
 
 const DEMO_DATA: Partial<DocItem>[] = [
     { title: "Git Push/Pull", category: "GitHub Cmds", preview: "Basic git workflow for pushing and pulling changes...", content: "git add .\ngit commit -m 'message'\ngit push origin main" },
