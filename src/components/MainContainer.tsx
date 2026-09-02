@@ -30,7 +30,7 @@ const MainContainer = ({ children }: PropsWithChildren) => {
       setIsDesktopView(window.innerWidth > 1024);
       ScrollSmoother.refresh(true);
     };
-    
+
     // Initialize ScrollSmoother
     smoother = ScrollSmoother.create({
       wrapper: "#smooth-wrapper",
@@ -41,7 +41,7 @@ const MainContainer = ({ children }: PropsWithChildren) => {
       autoResize: true,
       ignoreMobileResize: true,
     });
-    
+
     smoother.scrollTop(0);
     smoother.paused(true);
 
@@ -58,7 +58,7 @@ const MainContainer = ({ children }: PropsWithChildren) => {
       <SocialIcons />
       <RadialMenu onOpenDocs={() => setShowDocs(true)} />
       <DocsVault isOpen={showDocs} onClose={() => setShowDocs(false)} />
-      
+
       <div id="smooth-wrapper">
         <div id="smooth-content">
           <div className="container-main">
@@ -71,7 +71,7 @@ const MainContainer = ({ children }: PropsWithChildren) => {
           </div>
         </div>
       </div>
-      
+
       {/* Render character model at the bottom of DOM to ensure it is on top of content */}
       {isDesktopView && children}
     </div>

@@ -1,7 +1,8 @@
-@import url("https://fonts.googleapis.com/css2?family=Geist:wght@100..900&display=swap");
+@import url("https://fonts.googleapis.com/css2?family=Geist:wght@100..900&family=Alex+Brush&family=Allura&family=Birthstone+Bounce:wght@400;500&family=Caveat:wght@400..700&family=Dancing+Script:wght@400..700&family=Great+Vibes&family=Herr+Von+Muellerhoff&family=MonteCarlo&family=Mr+Dafoe&family=Pinyon+Script&family=Sacramento&family=WindSong:wght@400;500&display=swap");
 
 :root {
   font-family: "Geist", sans-serif;
+  --font-signature: "Alex Brush", "Birthstone Bounce", "Great Vibes", "Allura", "Caveat", cursive, sans-serif;
 
   font-optical-sizing: auto;
   font-style: normal;
@@ -23,6 +24,7 @@
   --vh: 100vh;
   --vh: 100svh;
 }
+
 h1,
 h2,
 h3,
@@ -31,30 +33,37 @@ h5,
 h6 {
   font-family: "Geist", sans-serif;
 }
+
 body {
   overflow: hidden;
 }
+
 a {
   color: inherit;
   text-decoration: inherit;
 }
+
 a:hover {
   color: var(--accentColor);
 }
+
 main {
   opacity: 1;
   transition: 0.3s;
 }
+
 .main-active {
   opacity: 0;
   animation: fadeIn 1s 1;
   animation-fill-mode: forwards;
 }
+
 @keyframes fadeIn {
   100% {
     opacity: 1;
   }
 }
+
 body {
   margin: 0;
   height: auto;
@@ -65,6 +74,7 @@ body {
   max-width: 100vw;
   overflow-x: hidden;
 }
+
 .main-body {
   max-width: 100vw;
   overflow-x: hidden;
@@ -75,15 +85,18 @@ body {
   margin: auto;
   position: relative;
 }
+
 .container1 {
   width: var(--cWidth);
   height: var(--vh);
   margin: auto;
   position: relative;
 }
+
 .split-line {
   overflow: hidden;
 }
+
 .split-h2 {
   overflow: hidden;
   display: flex;
@@ -116,6 +129,7 @@ body {
     --cWidth: 94%;
   }
 }
+
 @media screen and (max-width: 900px) {
   .techstack h2 {
     font-size: 40px;

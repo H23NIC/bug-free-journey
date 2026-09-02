@@ -199,9 +199,9 @@ const SocialItem = ({ href, icon }: SocialItemProps) => {
 const SocialIcons = () => (
   <div className="icons-section">
     <div className="social-icons" id="social">
-      <SocialItem href="https://github.com"        icon={<FaGithub />}     />
-      <SocialItem href="https://www.linkedin.com"  icon={<FaLinkedinIn />} />
-      <SocialItem href="https://x.com"             icon={<FaXTwitter />}   />
+      <SocialItem href="https://github.com"                   icon={<FaGithub />}     />
+      <SocialItem href="https://www.linkedin.com/in/h23dinesh" icon={<FaLinkedinIn />} />
+      <SocialItem href="https://x.com"                        icon={<FaXTwitter />}   />
       <SocialItem href="https://www.instagram.com" icon={<FaInstagram />}  />
     </div>
     <a className="resume-button" href="#">

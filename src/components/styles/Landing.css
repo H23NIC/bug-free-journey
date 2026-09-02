@@ -5,6 +5,7 @@
   position: relative;
   height: var(--vh);
 }
+
 .landing-container {
   width: var(--cWidth);
   margin: auto;
@@ -12,6 +13,7 @@
   position: relative;
   max-width: var(--cMaxWidth);
 }
+
 .landing-circle1 {
   top: 0%;
   left: 0%;
@@ -25,25 +27,26 @@
   border-radius: 50%;
   animation: loadingCircle 5s linear infinite;
 }
+
 .nav-fade {
   position: fixed;
   top: 0;
   width: 100%;
   height: 130px;
-  background-image: linear-gradient(
-    0deg,
-    transparent,
-    var(--backgroundColor) 70%
-  );
+  background-image: linear-gradient(0deg,
+      transparent,
+      var(--backgroundColor) 70%);
   pointer-events: none;
   z-index: 12;
   opacity: 0;
   left: 0;
 }
+
 @keyframes loadingCircle {
   0% {
     transform: translate(-95%, -75%) rotateZ(0deg);
   }
+
   100% {
     transform: translate(-95%, -75%) rotateZ(360deg);
   }
@@ -64,11 +67,13 @@
   border-radius: 50%;
   animation: loadingCircle2 5s linear infinite;
 }
+
 @keyframes loadingCircle2 {
   100% {
     transform: translate(calc(100% - 2px), -50%) rotate(360deg);
   }
 }
+
 .landing-video,
 .landing-image {
   position: absolute;
@@ -77,11 +82,13 @@
   left: 50%;
   transform: translateX(-50%);
 }
+
 .landing-image img {
   height: 100%;
   z-index: 2;
   position: relative;
 }
+
 .character-rim {
   position: absolute;
   width: 400px;
@@ -97,6 +104,7 @@
   transform: translate(-50%, 100%) scale(1.4);
   opacity: 0;
 }
+
 .character-model {
   height: 80%;
   height: 80vh;
@@ -110,21 +118,21 @@
   bottom: 50px;
   pointer-events: inherit;
 }
+
 .character-model::after {
   content: "";
   width: 100vw;
   height: 250px;
-  background-image: linear-gradient(
-    to bottom,
-    transparent,
-    var(--backgroundColor) 70%
-  );
+  background-image: linear-gradient(to bottom,
+      transparent,
+      var(--backgroundColor) 70%);
   bottom: -50px;
   left: 50%;
   transform: translateX(-50%);
   z-index: 9;
   position: absolute;
 }
+
 .character-model::before {
   content: "";
   width: 100vw;
@@ -136,16 +144,19 @@
   z-index: 9;
   position: absolute;
 }
+
 .character-loaded .character-rim {
   animation: backlight 3s forwards;
   animation-delay: 0.3s;
   opacity: 0;
 }
+
 .character-model canvas {
   position: relative;
   pointer-events: none;
   z-index: 2;
 }
+
 .character-hover {
   position: absolute;
   width: 280px;
@@ -157,12 +168,14 @@
   border-radius: 50%;
   pointer-events: none;
 }
+
 .landing-intro {
   position: absolute;
   z-index: 9;
   top: 8%;
   left: 0;
 }
+
 .landing-intro h2 {
   margin: 0;
   color: var(--accentColor);
@@ -192,6 +205,7 @@
   top: inherit;
   z-index: 9;
 }
+
 .landing-info h3 {
   font-size: 22px;
   letter-spacing: 2px;
@@ -199,6 +213,7 @@
   color: var(--accentColor);
   margin: 0;
 }
+
 .landing-info h2 {
   margin: 0;
   margin-top: -20px;
@@ -213,10 +228,12 @@
   text-transform: uppercase;
   letter-spacing: 2px;
 }
+
 .landing-h2-info-1 {
   position: absolute;
   top: 0;
 }
+
 h2.landing-info-h2 {
   color: #c481ff;
   font-size: 42px;
@@ -227,71 +244,85 @@ h2.landing-info-h2 {
   position: relative;
   margin-left: -5px;
 }
+
 .landing-h2-2 {
   position: absolute;
   top: 0;
 }
+
 .landing-info-h2::after {
   content: "";
   position: absolute;
   width: 100%;
   height: 120%;
   z-index: 3;
-  background-image: linear-gradient(
-    0deg,
-    var(--backgroundColor) 40%,
-    rgba(0, 0, 0, 0) 110%
-  );
+  background-image: linear-gradient(0deg,
+      var(--backgroundColor) 40%,
+      rgba(0, 0, 0, 0) 110%);
   top: 0;
   left: 0;
 }
+
 @media screen and (min-width: 500px) {
   .landing-circle2 {
     display: block;
   }
+
   .character-model {
     z-index: 0;
   }
+
   .landing-info h3 {
     font-size: 18px;
   }
+
   .landing-intro h2 {
     font-size: 18px;
   }
+
   .landing-intro h1 {
     font-size: 30px;
     line-height: 30px;
   }
+
   .landing-info h2 {
     font-size: 35px;
     line-height: 40px;
   }
+
   h2.landing-info-h2 {
     font-size: 38px;
   }
 }
+
 @media screen and (min-width: 768px) {
   .character-model {
     height: 80vh;
   }
+
   .landing-intro h2 {
     font-size: 25px;
   }
+
   .landing-intro h1 {
     font-size: 40px;
     line-height: 35px;
   }
+
   .landing-info h3 {
     font-size: 20px;
   }
+
   .landing-info h2 {
     font-size: 38px;
     line-height: 42px;
   }
+
   h2.landing-info-h2 {
     font-size: 45px;
   }
 }
+
 @media screen and (min-width: 1025px) {
   .character-model {
     height: 100vh;
@@ -299,10 +330,12 @@ h2.landing-info-h2 {
     z-index: 11;
     position: fixed;
   }
+
   .character-model::after,
   .character-model::before {
     display: none;
   }
+
   .landing-intro {
     top: 15%;
     left: auto;
@@ -320,6 +353,7 @@ h2.landing-info-h2 {
     left: 67%;
   }
 }
+
 @media screen and (min-width: 1200px) {
   .landing-intro {
     top: 15%;
@@ -338,21 +372,26 @@ h2.landing-info-h2 {
     left: 70%;
   }
 }
+
 @media screen and (min-width: 1600px) {
   .landing-intro h2 {
     font-size: 35px;
   }
+
   .landing-intro h1 {
     font-size: 60px;
     line-height: 55px;
   }
+
   .landing-info h3 {
     font-size: 26px;
   }
+
   .landing-info h2 {
     font-size: 50px;
     line-height: 52px;
   }
+
   h2.landing-info-h2 {
     font-size: 58px;
   }

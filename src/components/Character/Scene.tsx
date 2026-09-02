@@ -27,69 +27,6 @@ function centerMeshPivot(mesh: THREE.Mesh) {
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
-// Aerodynamic streamline helpers
-// ─────────────────────────────────────────────────────────────────────────────
-const NUM_STREAMS = 50;
-const FULL_SAMPLES = 180;  // points pre-sampled per curve (once at startup)
-const VIS_SAMPLES = 40;   // visible traveling segment length
-
-const CAR_HALF_W = 1.4;
-const CAR_ROOF_Y = 1.35;
-const CAR_FLOOR_Y = 0.12;
-
-/**
- * Builds one CatmullRomCurve3 aerodynamic path.
- * Flow direction: +Z (car front / camera side) → −Z (rear).
- */
-function buildAeroPath(x: number, y: number): THREE.CatmullRomCurve3 {
-  const pts: THREE.Vector3[] = [];
-  const onBody = Math.abs(x) < CAR_HALF_W;
-
-  pts.push(new THREE.Vector3(x, y, 8));
-  pts.push(new THREE.Vector3(x, y, 5));
-
-  if (y > CAR_ROOF_Y + 0.5) {
-    // High free-stream — barely deflected
-    const dip = onBody ? 0.15 : 0.04;
-    pts.push(new THREE.Vector3(x, y - dip, 1.5));
-    pts.push(new THREE.Vector3(x, y - dip * 1.5, 0));
-    pts.push(new THREE.Vector3(x, y - dip, -1.5));
-    pts.push(new THREE.Vector3(x, y, -4));
-
-  } else if (y < CAR_FLOOR_Y && onBody) {
-    // Under-chassis — squeezed low
-    pts.push(new THREE.Vector3(x, Math.max(0.02, y * 0.55), 1.5));
-    pts.push(new THREE.Vector3(x, Math.max(0.02, y * 0.45), 0));
-    pts.push(new THREE.Vector3(x, y, -2));
-    pts.push(new THREE.Vector3(x, y, -4));
-
-  } else if (onBody) {
-    // Surface-attached — rises over hood → roof → falls off trunk
-    const peak = CAR_ROOF_Y + 0.35 + Math.random() * 0.25;
-    pts.push(new THREE.Vector3(x * 0.92, y * 0.4 + peak * 0.2, 3));
-    pts.push(new THREE.Vector3(x * 0.88, peak * 0.78, 1.5));
-    pts.push(new THREE.Vector3(x * 0.85, peak, 0));
-    pts.push(new THREE.Vector3(x * 0.9, peak * 0.65, -1.2));
-    pts.push(new THREE.Vector3(x * 0.95, y * 0.5, -3));
-    pts.push(new THREE.Vector3(x, y * 0.2, -5));
-
-  } else {
-    // Side bypass — curves outward around the car body
-    const dir = x > 0 ? 1 : -1;
-    const bulge = Math.max(0, (2.2 - Math.abs(x)) / 2.2) * 0.6;
-    pts.push(new THREE.Vector3(x + dir * bulge * 0.5, y, 2.5));
-    pts.push(new THREE.Vector3(x + dir * bulge, y * 0.95, 0));
-    pts.push(new THREE.Vector3(x + dir * bulge * 0.3, y, -2));
-    pts.push(new THREE.Vector3(x, y, -4));
-  }
-
-  pts.push(new THREE.Vector3(x + (Math.random() - 0.5) * 0.35, y, -6.5));
-  pts.push(new THREE.Vector3(x, y, -9));
-
-  return new THREE.CatmullRomCurve3(pts, false, "catmullrom", 0.5);
-}
-
-// ─────────────────────────────────────────────────────────────────────────────
 // Scene component
 // ─────────────────────────────────────────────────────────────────────────────
 const Scene = () => {
@@ -325,63 +262,6 @@ const Scene = () => {
     window.addEventListener("touchmove", onTouchMove, { passive: false });
     window.addEventListener("touchend", onTouchEnd);
 
-    // ── Aerodynamic wind streamlines ─────────────────────────────────────────
-    // windGroup is a THREE.Group added to the scene.
-    // In the animate loop we copy carObj's quaternion into windGroup every frame,
-    // so the wind rotates in sync when GSAP turns the car left/right on scroll.
-    const windGroup = new THREE.Group();
-    scene.add(windGroup);
-
-    const streamAllPts: Float32Array[] = [];
-    const streamVisGeos: THREE.BufferGeometry[] = [];
-    const streamIdxs: number[] = [];
-    const streamSpeeds: number[] = [];
-
-    // Distribution configs
-    const configs: { x: number; y: number }[] = [];
-    for (let i = 0; i < 18; i++)
-      configs.push({ x: (Math.random() - 0.5) * CAR_HALF_W * 1.9, y: 0.08 + Math.random() * (CAR_ROOF_Y - 0.08) });
-    for (let i = 0; i < 7; i++)
-      configs.push({ x: (Math.random() - 0.5) * CAR_HALF_W * 1.4, y: Math.random() * CAR_FLOOR_Y });
-    for (let i = 0; i < 10; i++)
-      configs.push({ x: (Math.random() - 0.5) * 7, y: CAR_ROOF_Y + 0.6 + Math.random() * 1.8 });
-    for (let i = 0; i < 15; i++) {
-      const side = i < 8 ? -1 : 1;
-      configs.push({ x: side * (CAR_HALF_W + 0.25 + Math.random() * 2.8), y: Math.random() * (CAR_ROOF_Y + 0.5) });
-    }
-
-    const windMat = new THREE.LineBasicMaterial({
-      color: 0xd0d0d0,  // light gray
-      transparent: true,
-      opacity: 0.32,
-      blending: THREE.AdditiveBlending,
-      depthTest: true,       // respect depth buffer → occluded by solid parts of the car
-      depthWrite: false,
-    });
-
-    for (let s = 0; s < NUM_STREAMS; s++) {
-      const cfg = configs[s % configs.length];
-      const curve = buildAeroPath(cfg.x, cfg.y);
-
-      // Pre-sample curve once — pure array copy at runtime, zero curve math
-      const pts = curve.getPoints(FULL_SAMPLES - 1);
-      const allPos = new Float32Array(FULL_SAMPLES * 3);
-      pts.forEach((p, i) => { allPos[i * 3] = p.x; allPos[i * 3 + 1] = p.y; allPos[i * 3 + 2] = p.z; });
-      streamAllPts.push(allPos);
-
-      const visPos = new Float32Array(VIS_SAMPLES * 3);
-      const geo = new THREE.BufferGeometry();
-      geo.setAttribute("position", new THREE.BufferAttribute(visPos, 3));
-      streamVisGeos.push(geo);
-
-      const line = new THREE.Line(geo, windMat);
-      line.renderOrder = 999;
-      windGroup.add(line);  // child of windGroup → rotates with car
-
-      streamIdxs.push(Math.floor(Math.random() * (FULL_SAMPLES - VIS_SAMPLES)));
-      streamSpeeds.push(0.3 + Math.random() * 0.25);  // slow, smooth airflow speed
-    }
-
     // ── Lighting + loader ────────────────────────────────────────────────────
     const light = setLighting(scene);
     lightRef.current = light;
@@ -429,41 +309,13 @@ const Scene = () => {
       if (!mounted) return;
       frameId = requestAnimationFrame(animate);
 
-      // ── Sync wind rotation to car rotation ────────────────────────────────
-      // GSAP animates carObj.rotation during scroll (in animationUtils/GsapScroll).
-      // Copying the quaternion here each frame keeps the wind perfectly aligned
-      // with the car at all times — so wind turns left/right with the model.
-      if (carObjRef.current) {
-        const tempQuat = new THREE.Quaternion();
-        carObjRef.current.getWorldQuaternion(tempQuat);
-        windGroup.quaternion.copy(tempQuat);
-      }
+      const delta = clock.getDelta();
 
-      // ── Advance wind segments ─────────────────────────────────────────────
-      // Each frame: copy VIS_SAMPLES consecutive points from the pre-sampled
-      // path, then advance the start index. Pure typed-array copy, no math.
-      for (let s = 0; s < NUM_STREAMS; s++) {
-        const allPos = streamAllPts[s];
-        const geo = streamVisGeos[s];
-        const visPos = geo.attributes.position.array as Float32Array;
-        const start = Math.floor(streamIdxs[s]);
-
-        for (let i = 0; i < VIS_SAMPLES; i++) {
-          const src = Math.min(start + i, FULL_SAMPLES - 1);
-          visPos[i * 3] = allPos[src * 3];
-          visPos[i * 3 + 1] = allPos[src * 3 + 1];
-          visPos[i * 3 + 2] = allPos[src * 3 + 2];
-        }
-        geo.attributes.position.needsUpdate = true;
-
-        streamIdxs[s] += streamSpeeds[s];
-        if (streamIdxs[s] >= FULL_SAMPLES - VIS_SAMPLES) streamIdxs[s] = 0;
-      }
 
       // ── Spin wheels anticlockwise (pivot centred → in-place roll) ─────────
       for (const mesh of wheelMeshes) mesh.rotation.x += 0.20;
 
-      if (mixerRef.current) mixerRef.current.update(clock.getDelta());
+      if (mixerRef.current) mixerRef.current.update(delta);
       renderer.render(scene, camera);
     };
     animate();
