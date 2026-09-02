@@ -53,7 +53,7 @@
     max-width: 1920px;
     height: var(--vh);
     padding: 0px;
-    padding-bottom: 70px;
+    padding-bottom: 60px;
     opacity: 1;
     box-sizing: border-box;
   }
@@ -64,8 +64,8 @@
     margin-bottom: 20px;
   }
   .about-me p {
-    font-size: 1.8vw;
-    line-height: 2.2vw;
+    font-size: 1.7vw;
+    line-height: 2.1vw;
   }
 }
 @media only screen and (min-width: 1950px) {

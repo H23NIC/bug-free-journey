@@ -41,7 +41,7 @@ export function setCharTimeline(
         .fromTo(
           character.position,
           { x: 0 },
-          { x: -2.6, duration: 1 },
+          { x: -3.6, duration: 1 },
           0
         )
         .fromTo(character.rotation, { y: -0.5, x: 0.05 }, { y: 0.7, x: 0, duration: 1 }, 0)
