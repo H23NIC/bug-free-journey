@@ -48,24 +48,35 @@
 @media only screen and (min-width: 1025px) {
   .about-section {
     width: var(--cWidth);
-    justify-content: right;
+    justify-content: flex-end;
+    align-items: flex-end;
     max-width: 1920px;
     height: var(--vh);
     padding: 0px;
+    padding-bottom: 70px;
     opacity: 1;
+    box-sizing: border-box;
   }
   .about-me {
     padding: 0px;
-    width: 50%;
+    width: 48%;
+    max-width: 650px;
+    margin-bottom: 20px;
   }
   .about-me p {
-    font-size: 1.9vw;
-    line-height: 2.3vw;
+    font-size: 1.8vw;
+    line-height: 2.2vw;
   }
 }
 @media only screen and (min-width: 1950px) {
+  .about-section {
+    padding-bottom: 100px;
+  }
+  .about-me {
+    max-width: 750px;
+  }
   .about-me p {
-    font-size: 2.5rem;
-    line-height: 2.7rem;
+    font-size: 2.2rem;
+    line-height: 2.5rem;
   }
 }

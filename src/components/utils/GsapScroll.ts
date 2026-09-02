@@ -38,16 +38,27 @@ export function setCharTimeline(
   if (window.innerWidth > 1024) {
     if (character) {
       tl1
+        .fromTo(
+          character.position,
+          { x: 0 },
+          { x: -2.6, duration: 1 },
+          0
+        )
         .fromTo(character.rotation, { y: -0.5, x: 0.05 }, { y: 0.7, x: 0, duration: 1 }, 0)
         .to(camera.position, { z: 12, y: 1.5 }, 0)
         .to(".landing-container", { opacity: 0, duration: 0.4 }, 0)
         .to(".landing-container", { y: "40%", duration: 0.8 }, 0)
-        .fromTo(".about-me", { y: "-50%" }, { y: "0%" }, 0);
+        .fromTo(".about-me", { opacity: 0, y: "20px" }, { opacity: 1, y: "0px", duration: 0.8 }, 0.2);
 
       tl2
         .to(
+          character.position,
+          { x: 0, duration: 4, delay: 2, ease: "power2.inOut" },
+          0
+        )
+        .to(
           camera.position,
-          { z: 16, y: 2.2, duration: 6, delay: 2, ease: "power3.inOut" },
+          { z: 16, y: 1.8, duration: 6, delay: 2, ease: "power3.inOut" },
           0
         )
         .to(".about-section", { y: "30%", duration: 6 }, 0)
@@ -58,7 +69,7 @@ export function setCharTimeline(
           { pointerEvents: "none", delay: 2, duration: 5 },
           0
         )
-        .to(character.rotation, { y: 2.1, x: 0.1, delay: 2, duration: 4 }, 0)
+        .to(character.rotation, { y: Math.PI, x: 0, delay: 2, duration: 4, ease: "power2.inOut" }, 0)
         .fromTo(
           ".what-box-in",
           { display: "none" },
@@ -80,7 +91,7 @@ export function setCharTimeline(
           0
         )
         .fromTo(".whatIDO", { y: 0 }, { y: "15%", duration: 2 }, 0)
-        .to(character.rotation, { y: 3.2, x: 0, duration: 3, delay: 1 }, 0);
+        .to(character.rotation, { y: Math.PI, x: 0, duration: 3, delay: 1 }, 0);
     }
   } else {
     if (character) {

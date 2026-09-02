@@ -316,6 +316,7 @@ const Scene = () => {
       for (const mesh of wheelMeshes) mesh.rotation.x += 0.20;
 
       if (mixerRef.current) mixerRef.current.update(delta);
+      camera.lookAt(0, 0.8, 0);
       renderer.render(scene, camera);
     };
     animate();
