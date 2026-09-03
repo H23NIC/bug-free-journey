@@ -40,8 +40,14 @@ export function setCharTimeline(
       tl1
         .fromTo(
           character.position,
-          { x: 0 },
-          { x: -3.6, duration: 1 },
+          { x:  0 },
+          { x: -2.9, duration: 1 },
+          0
+        )
+        .fromTo(
+          character.scale,
+          { x: 160, y: 160, z: 160 },
+          { x: 160, y: 160, z: 160, duration: 1 },
           0
         )
         .fromTo(character.rotation, { y: -0.5, x: 0.05 }, { y: 0.7, x: 0, duration: 1 }, 0)
@@ -51,36 +57,41 @@ export function setCharTimeline(
         .fromTo(".about-me", { opacity: 0, y: "20px" }, { opacity: 1, y: "0px", duration: 0.8 }, 0.2);
 
       tl2
+        .to(".about-section", { opacity: 0, y: "-20%", duration: 2, ease: "power2.in" }, 0)
+        .to(".about-me", { opacity: 0, y: "-30px", duration: 1.5, ease: "power2.in" }, 0)
         .to(
           character.position,
-          { x: 0, duration: 4, delay: 2, ease: "power2.inOut" },
+          { x: -0.4, duration: 3.5, delay: 0.3, ease: "power2.inOut" },
+          0
+        )
+        .to(
+          character.scale,
+          { x: 105, y: 105, z: 105, duration: 3.5, delay: 0.3, ease: "power2.inOut" },
           0
         )
         .to(
           camera.position,
-          { z: 16, y: 1.8, duration: 6, delay: 2, ease: "power3.inOut" },
+          { z: 16.5, y: 2.0, duration: 4, delay: 0.3, ease: "power2.inOut" },
           0
         )
-        .to(".about-section", { y: "30%", duration: 6 }, 0)
-        .to(".about-section", { opacity: 0, delay: 3, duration: 2 }, 0)
         .fromTo(
           ".character-model",
           { pointerEvents: "inherit" },
-          { pointerEvents: "none", delay: 2, duration: 5 },
+          { pointerEvents: "none", delay: 1, duration: 2 },
           0
         )
-        .to(character.rotation, { y: Math.PI, x: 0, delay: 2, duration: 4, ease: "power2.inOut" }, 0)
+        .to(character.rotation, { y: 2.55, x: 0.3, delay: 0.3, duration: 3.5, ease: "power2.inOut" }, 0)
         .fromTo(
           ".what-box-in",
           { display: "none" },
-          { display: "flex", duration: 0.1, delay: 6 },
+          { display: "flex", duration: 0.1, delay: 1.5 },
           0
         )
         .fromTo(
           ".character-rim",
           { opacity: 1, scaleX: 1.4 },
-          { opacity: 0, scale: 0, y: "-70%", duration: 5, delay: 2 },
-          0.3
+          { opacity: 0, scale: 0, y: "-70%", duration: 3, delay: 0.3 },
+          0.2
         );
 
       tl3
@@ -91,7 +102,7 @@ export function setCharTimeline(
           0
         )
         .fromTo(".whatIDO", { y: 0 }, { y: "15%", duration: 2 }, 0)
-        .to(character.rotation, { y: Math.PI, x: 0, duration: 3, delay: 1 }, 0);
+        .to(character.rotation, { y: 2.55, x: 0.3, duration: 3, delay: 1 }, 0);
     }
   } else {
     if (character) {
