@@ -11,6 +11,8 @@
   height: 100vh;
   box-sizing: border-box;
   will-change: transform;
+  position: relative;
+  overflow: hidden;
 }
 .work-container {
   margin: auto;
