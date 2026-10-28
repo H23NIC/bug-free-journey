@@ -33,8 +33,8 @@ interface StarOrbitProps {
 }
 
 const RINGS = [
-  { count: 3,  radius: 23, tilt: 0.35, speed:  1.6,  starSize: 1.1, color: "255,255,255" },
-  { count: 4,  radius: 36, tilt: 0.48, speed: -1.1,  starSize: 0.85, color: "200,185,255" },
+  { count: 3,  radius: 23, tilt: 0.35, speed:  1.6,  starSize: 1.1, color: "123,47,247" },
+  { count: 4,  radius: 36, tilt: 0.48, speed: -1.1,  starSize: 0.85, color: "139,61,255" },
 ];
 
 const CANVAS_SIZE = 110; // px

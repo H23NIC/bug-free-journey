@@ -19,8 +19,9 @@
   font-size: 25px;
   text-transform: uppercase;
   letter-spacing: 7px;
-  font-weight: 400;
-  color: var(--accentColor);
+  font-weight: 700;
+  color: #000000 !important;
+  -webkit-text-fill-color: #000000 !important;
 }
 
 .about-me p {
@@ -28,6 +29,26 @@
   font-weight: 600;
   line-height: 36px;
   letter-spacing: 1px;
+  color: #111111 !important;
+  -webkit-text-fill-color: #111111 !important;
+}
+
+.about-me .title,
+.about-me .title *,
+.about-me .title div,
+.about-me .title span {
+  color: #000000 !important;
+  -webkit-text-fill-color: #000000 !important;
+  font-weight: 700 !important;
+}
+
+.about-me .para,
+.about-me .para *,
+.about-me .para div,
+.about-me .para span {
+  color: #111111 !important;
+  -webkit-text-fill-color: #111111 !important;
+  font-weight: 600 !important;
 }
 
 @media only screen and (min-width: 600px) {

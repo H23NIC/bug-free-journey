@@ -1,74 +1,56 @@
 import * as THREE from "three";
-import { RGBELoader } from "three-stdlib";
 import { gsap } from "gsap";
 
 const setLighting = (scene: THREE.Scene) => {
-  // Dark automotive wind tunnel laboratory ambient lighting
-  const ambientLight = new THREE.AmbientLight(0xffffff, 1.4);
-  scene.add(ambientLight);
+  // Ambient & sky light
+  const hemi = new THREE.HemisphereLight(0xffffff, 0x8a72c7, 1.3);
+  scene.add(hemi);
 
-  // Key overhead studio spotlight (dramatic hood & windshield highlights)
-  const directionalLight = new THREE.DirectionalLight(0xffffff, 2.8);
-  directionalLight.position.set(4, 12, 8);
-  directionalLight.castShadow = true;
-  directionalLight.shadow.mapSize.width = 2048;
-  directionalLight.shadow.mapSize.height = 2048;
-  directionalLight.shadow.camera.near = 0.5;
-  directionalLight.shadow.camera.far = 50;
-  scene.add(directionalLight);
+  // Key front-top light (angled directly toward hood, grille, and headlights)
+  const frontKey = new THREE.DirectionalLight(0xffffff, 2.2);
+  frontKey.position.set(3.5, 4.8, 5.5);
+  frontKey.castShadow = true;
+  frontKey.shadow.mapSize.width = 2048;
+  frontKey.shadow.mapSize.height = 2048;
+  frontKey.shadow.camera.near = 0.5;
+  frontKey.shadow.camera.far = 40;
+  frontKey.shadow.camera.left = -7;
+  frontKey.shadow.camera.right = 7;
+  frontKey.shadow.camera.top = 7;
+  frontKey.shadow.camera.bottom = -7;
+  frontKey.shadow.bias = -0.0005;
+  scene.add(frontKey);
 
-  // Studio front-quarter fill light
-  const aeroFillLight = new THREE.DirectionalLight(0xffffff, 0.8);
-  aeroFillLight.position.set(-6, 4, 6);
-  scene.add(aeroFillLight);
+  // Overhead softbox (highlights roof, hood ridges, and spoiler)
+  const topLight = new THREE.DirectionalLight(0xfffaff, 1.5);
+  topLight.position.set(0, 9, 1.5);
+  scene.add(topLight);
 
-  // Studio rear rim accent light
-  const wakeRimLight = new THREE.DirectionalLight(0xffffff, 0.9);
-  wakeRimLight.position.set(2, 3, -8);
-  scene.add(wakeRimLight);
+  // Left fill/rim light (soft lavender tint to blend with showroom)
+  const leftFill = new THREE.DirectionalLight(0xd9c8ff, 1.5);
+  leftFill.position.set(-6, 3.5, 4.0);
+  scene.add(leftFill);
 
-  // Overhead linear tunnel strip light
-  const stripLight = new THREE.PointLight(0xdff4ff, 1.8, 40, 1.8);
-  stripLight.position.set(0, 7, 0);
-  scene.add(stripLight);
+  // Right fill/rim light (soft pink/magenta tint)
+  const rightFill = new THREE.DirectionalLight(0xffd4eb, 1.5);
+  rightFill.position.set(6, 3.5, 4.0);
+  scene.add(rightFill);
 
-  new RGBELoader()
-    .setPath("/models/")
-    .load("char_enviorment.hdr", function (texture) {
-      texture.mapping = THREE.EquirectangularReflectionMapping;
-      scene.environment = texture;
-      scene.environmentIntensity = 1.3;
-      scene.environmentRotation.set(0, Math.PI / 4, 0);
-    });
+  // Front bumper / splitter low fill
+  const lowFront = new THREE.PointLight(0xffffff, 1.2, 14);
+  lowFront.position.set(0, 0.7, 4.8);
+  scene.add(lowFront);
 
-  function setPointLight(screenLight: any) {
-    if (screenLight && screenLight.material && screenLight.material.opacity > 0.9) {
-      stripLight.intensity = screenLight.material.emissiveIntensity * 20;
-    }
-  }
-
-  const duration = 2;
-  const ease = "power2.inOut";
   function turnOnLights() {
-    gsap.to(scene, {
-      environmentIntensity: 1.5,
-      duration: duration,
-      ease: ease,
-    });
-    gsap.to(directionalLight, {
-      intensity: 3.2,
-      duration: duration,
-      ease: ease,
-    });
-    gsap.to(".character-rim", {
-      y: "55%",
-      opacity: 1,
-      delay: 0.2,
-      duration: 2,
-    });
+    gsap.to(frontKey, { intensity: 2.2, duration: 2, ease: "power2.inOut" });
+    gsap.to(hemi, { intensity: 1.3, duration: 2, ease: "power2.inOut" });
+    gsap.to(topLight, { intensity: 1.5, duration: 2, ease: "power2.inOut" });
+    gsap.to(leftFill, { intensity: 1.5, duration: 2, ease: "power2.inOut" });
+    gsap.to(rightFill, { intensity: 1.5, duration: 2, ease: "power2.inOut" });
+    gsap.to(".character-rim", { y: "55%", opacity: 0.5, delay: 0.2, duration: 2 });
   }
 
-  return { setPointLight, turnOnLights };
+  return { turnOnLights };
 };
 
 export default setLighting;

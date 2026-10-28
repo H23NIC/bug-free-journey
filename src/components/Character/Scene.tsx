@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState } from "react";
+
 import * as THREE from "three";
 import setCharacter from "./utils/character";
 import setLighting from "./utils/lighting";
@@ -7,15 +8,11 @@ import handleResize from "./utils/resizeUtils";
 import { OrbitControls } from "three-stdlib";
 import setAnimations from "./utils/animationUtils";
 
-// ─────────────────────────────────────────────────────────────────────────────
-// Wheel config — exact GROUP names confirmed via GLB binary parse
-// ─────────────────────────────────────────────────────────────────────────────
-const WHEEL_GROUP_NAMES = ["_Wheel2A_RR", "_Wheel2A_LR", "_Wheel2A_RF", "_Wheel2A_LF"];
+const WHEEL_GROUP_NAMES = [
+  "_Wheel2A_RR", "_Wheel2A_LR", "_Wheel2A_RF", "_Wheel2A_LF",
+  "wheel_lf_52", "wheel_lr_53", "wheel_rr_54", "wheel_rf_55"
+];
 
-/**
- * Re-centres a mesh's geometry pivot to its visual centre.
- * mesh.rotation.x will then spin the wheel in place — no orbiting.
- */
 function centerMeshPivot(mesh: THREE.Mesh) {
   mesh.geometry.computeBoundingBox();
   const centre = new THREE.Vector3();
@@ -26,16 +23,68 @@ function centerMeshPivot(mesh: THREE.Mesh) {
   mesh.position.z += centre.z;
 }
 
-// ─────────────────────────────────────────────────────────────────────────────
-// Scene component
-// ─────────────────────────────────────────────────────────────────────────────
+function createSkyDome() {
+  const vertexShader = `
+    varying vec3 vWorldPos;
+    void main() {
+      vWorldPos = (modelMatrix * vec4(position, 1.0)).xyz;
+      gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0);
+    }
+  `;
+  const fragmentShader = `
+    varying vec3 vWorldPos;
+    uniform vec3 uTopColor;
+    uniform vec3 uHorizonColor;
+    uniform vec3 uBottomColor;
+    void main() {
+      float t = normalize(vWorldPos).y;
+      vec3 col;
+      if (t >= 0.0) {
+        col = mix(uHorizonColor, uTopColor, t);
+      } else {
+        col = mix(uHorizonColor, uBottomColor, -t);
+      }
+      gl_FragColor = vec4(col, 1.0);
+    }
+  `;
+  const geo = new THREE.SphereGeometry(90, 32, 16);
+  const mat = new THREE.ShaderMaterial({
+    vertexShader,
+    fragmentShader,
+    uniforms: {
+      uTopColor: { value: new THREE.Color(0xffffff) },
+      uHorizonColor: { value: new THREE.Color(0xece6fb) },
+      uBottomColor: { value: new THREE.Color(0xc9b6f5) },
+    },
+    side: THREE.BackSide,
+    depthWrite: false,
+  });
+  return new THREE.Mesh(geo, mat);
+}
+
+function createContactShadowTexture() {
+  const size = 512;
+  const canvas = document.createElement("canvas");
+  canvas.width = size;
+  canvas.height = size;
+  const ctx = canvas.getContext("2d")!;
+  const gradient = ctx.createRadialGradient(size / 2, size / 2, 0, size / 2, size / 2, size / 2);
+  gradient.addColorStop(0, "rgba(0,0,0,0.55)");
+  gradient.addColorStop(0.4, "rgba(0,0,0,0.30)");
+  gradient.addColorStop(0.8, "rgba(0,0,0,0.08)");
+  gradient.addColorStop(1, "rgba(0,0,0,0)");
+  ctx.fillStyle = gradient;
+  ctx.fillRect(0, 0, size, size);
+  const tex = new THREE.CanvasTexture(canvas);
+  tex.needsUpdate = true;
+  return tex;
+}
+
 const Scene = () => {
   const canvasDiv = useRef<HTMLDivElement | null>(null);
   const hoverDivRef = useRef<HTMLDivElement>(null);
   const { isLoading } = useLoading();
-
   const [sceneReady, setSceneReady] = useState(false);
-
   const mixerRef = useRef<THREE.AnimationMixer | null>(null);
   const carObjRef = useRef<THREE.Object3D | null>(null);
   const lightRef = useRef<any | null>(null);
@@ -45,233 +94,158 @@ const Scene = () => {
     if (!canvasDiv.current) return;
     canvasDiv.current.innerHTML = "";
 
+    const prefersReducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
     const rect = canvasDiv.current.getBoundingClientRect();
     const aspect = rect.width / rect.height;
-    const scene = new THREE.Scene();
 
-    const renderer = new THREE.WebGLRenderer({ alpha: true, antialias: true });
+    const scene = new THREE.Scene();
+    scene.fog = new THREE.Fog(0xece6fb, 14, 48);
+
+    const renderer = new THREE.WebGLRenderer({ antialias: true });
     renderer.setSize(rect.width, rect.height);
     renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+    renderer.outputColorSpace = THREE.SRGBColorSpace;
+    renderer.shadowMap.enabled = true;
+    renderer.shadowMap.type = THREE.PCFSoftShadowMap;
     renderer.toneMapping = THREE.ACESFilmicToneMapping;
-    renderer.toneMappingExposure = 1.3;
+    renderer.toneMappingExposure = 1.35;
     canvasDiv.current.appendChild(renderer.domElement);
 
-    // ── Camera ──────────────────────────────────────────────────────────────
-    const DEFAULT_Z = 12, DEFAULT_Y = 1.8, DEFAULT_X = 0;
-    const camera = new THREE.PerspectiveCamera(30, aspect, 0.1, 1000);
-    camera.position.set(DEFAULT_X, DEFAULT_Y, DEFAULT_Z);
-    camera.lookAt(0, 0.8, 0);
-    camera.updateProjectionMatrix();
+    const camera = new THREE.PerspectiveCamera(40, aspect, 0.1, 300);
+    camera.position.set(1.1, 3.2, 8.2);
+    camera.lookAt(0, 0.7, 0);
 
     const controls = new OrbitControls(camera, renderer.domElement);
-    controls.enableDamping = false;
-    controls.enableZoom = false;
+    controls.enableDamping = true;
+    controls.dampingFactor = 0.08;
+    controls.minDistance = 3.5;
+    controls.maxDistance = 14;
+    controls.maxPolarAngle = Math.PI * 0.49;
+    controls.minPolarAngle = 0.1;
     controls.enablePan = false;
-    controls.enableRotate = false;
+    controls.enableZoom = false;   // let page scroll reach GSAP ScrollSmoother
+    controls.target.set(0, 0.7, 0);
+    controls.update();
 
-    // ── Parent Drag Group for manual rotation ────────────────────────────────
-    const carDragGroup = new THREE.Group();
-    scene.add(carDragGroup);
+    scene.add(createSkyDome());
 
-    // ── Input state ──────────────────────────────────────────────────────────
-    let isShiftHeld = false, isCtrlHeld = false;
-    let isPanning = false, lastMouseX = 0, lastMouseY = 0;
-    const wheelMeshes: THREE.Mesh[] = [];
+    // ── Showcase Group (showroom floor, platform, neon rings, halos, particles) ──
+    // Only visible on the hero landing page; sinks below on scroll to About Me
+    const showcaseGroup = new THREE.Group();
+    showcaseGroup.name = "showcaseGroup";
+    scene.add(showcaseGroup);
 
-    // Drag-to-rotate states
-    let isDraggingModel = false;
-    let lastDragX = 0;
-    let lastDragY = 0;
+    const floor = new THREE.Mesh(
+      new THREE.CircleGeometry(80, 64),
+      new THREE.MeshStandardMaterial({ color: 0xe4dbf8, roughness: 0.35, metalness: 0.15 })
+    );
+    floor.rotation.x = -Math.PI / 2;
+    floor.receiveShadow = true;
+    scene.add(floor);
 
-    // Raycaster for checking hover & click intersections on the 3D model
-    const raycaster = new THREE.Raycaster();
-    const mouseNDC = new THREE.Vector2();
+    const platform = new THREE.Mesh(
+      new THREE.CylinderGeometry(3.6, 3.65, 0.12, 64),
+      new THREE.MeshStandardMaterial({ color: 0x14101f, roughness: 0.25, metalness: 0.7 })
+    );
+    platform.position.y = 0.06;
+    platform.receiveShadow = true;
+    platform.castShadow = true;
+    showcaseGroup.add(platform);
 
-    function smoothResetCamera() {
-      const fX = camera.position.x, fY = camera.position.y, fZ = camera.position.z;
-      const t0 = performance.now();
-      function step(now: number) {
-        const t = Math.min((now - t0) / 600, 1), e = 1 - Math.pow(1 - t, 3);
-        camera.position.set(fX + (DEFAULT_X - fX) * e, fY + (DEFAULT_Y - fY) * e, fZ + (DEFAULT_Z - fZ) * e);
-        camera.lookAt(0, 0.8, 0);
-        if (t < 1) requestAnimationFrame(step);
-      }
-      requestAnimationFrame(step);
+    const neonRingDefs = [
+      { r: 3.58, tube: 0.035, color: 0x8b3dff, opacity: 1.0, y: 0.13 },
+      { r: 4.15, tube: 0.025, color: 0xff2e88, opacity: 0.8, y: 0.13 },
+      { r: 5.3,  tube: 0.022, color: 0x8b3dff, opacity: 0.5, y: 0.13 },
+      { r: 7.2,  tube: 0.018, color: 0xff7a2e, opacity: 0.35, y: 0.13 },
+    ] as const;
+    neonRingDefs.forEach(({ r, tube, color, opacity, y }) => {
+      const ring = new THREE.Mesh(
+        new THREE.TorusGeometry(r, tube, 12, 100),
+        new THREE.MeshBasicMaterial({ color, transparent: true, opacity })
+      );
+      ring.rotation.x = -Math.PI / 2;
+      ring.position.y = y;
+      showcaseGroup.add(ring);
+    });
+
+    const haloDefs = [
+      { r: 4.8, tube: 0.025, h: 1.6, tilt: +0.18, color: 0x8b3dff, opacity: 0.55, dir: +1 },
+      { r: 5.8, tube: 0.022, h: 2.8, tilt: -0.18, color: 0xff2e88, opacity: 0.55, dir: -1 },
+      { r: 7.0, tube: 0.020, h: 1.1, tilt: +0.18, color: 0x8b3dff, opacity: 0.50, dir: +1 },
+      { r: 8.4, tube: 0.018, h: 3.6, tilt: -0.18, color: 0xff7a2e, opacity: 0.50, dir: -1 },
+    ] as const;
+    const haloRings: Array<{ mesh: THREE.Mesh; dir: number }> = [];
+    haloDefs.forEach(({ r, tube, h, tilt, color, opacity, dir }) => {
+      const ring = new THREE.Mesh(
+        new THREE.TorusGeometry(r, tube, 12, 120),
+        new THREE.MeshBasicMaterial({ color, transparent: true, opacity })
+      );
+      ring.position.y = h;
+      ring.rotation.x = Math.PI / 2 + tilt;
+      showcaseGroup.add(ring);
+      haloRings.push({ mesh: ring, dir });
+    });
+
+    const shadowPlane = new THREE.Mesh(
+      new THREE.PlaneGeometry(9.6, 5.0),
+      new THREE.MeshBasicMaterial({ map: createContactShadowTexture(), transparent: true, depthWrite: false })
+    );
+    shadowPlane.rotation.x = -Math.PI / 2;
+    shadowPlane.position.y = 0.125;
+    showcaseGroup.add(shadowPlane);
+
+    const PARTICLE_COUNT = 260;
+    const pPositions = new Float32Array(PARTICLE_COUNT * 3);
+    for (let i = 0; i < PARTICLE_COUNT; i++) {
+      const angle = Math.random() * Math.PI * 2;
+      const radius = 3 + Math.random() * 14;
+      pPositions[i * 3 + 0] = Math.cos(angle) * radius;
+      pPositions[i * 3 + 1] = Math.random() * 7;
+      pPositions[i * 3 + 2] = Math.sin(angle) * radius;
     }
+    const pGeo = new THREE.BufferGeometry();
+    pGeo.setAttribute("position", new THREE.BufferAttribute(pPositions, 3));
+    const particles = new THREE.Points(pGeo,
+      new THREE.PointsMaterial({ color: 0x8b3dff, size: 0.06, transparent: true, opacity: 0.8, sizeAttenuation: true })
+    );
+    showcaseGroup.add(particles);
 
-    const onKeyDown = (e: KeyboardEvent) => {
-      if (e.key === "Shift") isShiftHeld = true;
-      if (e.key === "Control") isCtrlHeld = true;
-    };
-    const onKeyUp = (e: KeyboardEvent) => {
-      if (e.key === "Shift") { isShiftHeld = false; isPanning = false; smoothResetCamera(); }
-      if (e.key === "Control") { isCtrlHeld = false; isPanning = false; }
-    };
-    const onWheel = (e: WheelEvent) => {
-      if (!isShiftHeld) return;
-      e.preventDefault(); e.stopImmediatePropagation();
-      camera.position.z = Math.max(4, Math.min(30, camera.position.z + (e.deltaY > 0 ? 0.5 : -0.5)));
-      camera.lookAt(0, 0.8, 0);
-    };
-    const onMouseDown = (e: MouseEvent) => {
-      if (isShiftHeld && isCtrlHeld) { isPanning = true; lastMouseX = e.clientX; lastMouseY = e.clientY; }
-    };
-    const onMouseMove = (e: MouseEvent) => {
-      if (!isPanning || !isShiftHeld || !isCtrlHeld) { isPanning = false; return; }
-      camera.position.x -= (e.clientX - lastMouseX) * 0.008;
-      camera.position.y += (e.clientY - lastMouseY) * 0.008;
-      camera.lookAt(0, 0.8, 0);
-      lastMouseX = e.clientX; lastMouseY = e.clientY;
-    };
-    const onMouseUp = () => { isPanning = false; };
-
-    // Register our drag events
-    const containerEl = canvasDiv.current;
-
-    // Manual mouse drag handlers for rotation (only if clicking the car model)
-    const onModelDragStart = (e: MouseEvent) => {
-      if (e.button !== 0) return; // only left click
-      if (!containerEl || !carObjRef.current) return;
-
-      const rect = containerEl.getBoundingClientRect();
-      mouseNDC.x = ((e.clientX - rect.left) / rect.width) * 2 - 1;
-      mouseNDC.y = -((e.clientY - rect.top) / rect.height) * 2 + 1;
-
-      raycaster.setFromCamera(mouseNDC, camera);
-      const intersects = raycaster.intersectObject(carObjRef.current, true);
-
-      if (intersects.length > 0) {
-        isDraggingModel = true;
-        lastDragX = e.clientX;
-        lastDragY = e.clientY;
-        containerEl.style.cursor = "grabbing";
-        document.body.style.cursor = "grabbing";
-        e.preventDefault();
-      }
-    };
-
-    const onModelDragMove = (e: MouseEvent) => {
-      if (!isDraggingModel) return;
-      const deltaX = e.clientX - lastDragX;
-      const deltaY = e.clientY - lastDragY;
-      
-      const sensitivity = 0.007;
-      carDragGroup.rotation.y += deltaX * sensitivity;
-      carDragGroup.rotation.x += deltaY * sensitivity;
-
-      // Limit pitch to prevent flipping upside down
-      const pitchLimit = Math.PI / 6;
-      carDragGroup.rotation.x = Math.max(-pitchLimit, Math.min(pitchLimit, carDragGroup.rotation.x));
-
-      lastDragX = e.clientX;
-      lastDragY = e.clientY;
-    };
-
-    const onModelDragEnd = () => {
-      if (isDraggingModel) {
-        isDraggingModel = false;
-        if (containerEl) {
-          containerEl.style.cursor = "";
-        }
-        document.body.style.cursor = "";
-      }
-    };
-
-    // Touch support for mobile dragging (only if touching the car model)
-    const onTouchStart = (e: TouchEvent) => {
-      if (e.touches.length !== 1) return;
-      if (!containerEl || !carObjRef.current) return;
-
-      const rect = containerEl.getBoundingClientRect();
-      mouseNDC.x = ((e.touches[0].clientX - rect.left) / rect.width) * 2 - 1;
-      mouseNDC.y = -((e.touches[0].clientY - rect.top) / rect.height) * 2 + 1;
-
-      raycaster.setFromCamera(mouseNDC, camera);
-      const intersects = raycaster.intersectObject(carObjRef.current, true);
-
-      if (intersects.length > 0) {
-        isDraggingModel = true;
-        lastDragX = e.touches[0].clientX;
-        lastDragY = e.touches[0].clientY;
-        e.preventDefault(); // prevent scroll/zoom only if touching the model
-      }
-    };
-
-    const onTouchMove = (e: TouchEvent) => {
-      if (!isDraggingModel || e.touches.length !== 1) return;
-      e.preventDefault(); // prevent scroll/zoom during model drag
-      const deltaX = e.touches[0].clientX - lastDragX;
-      const deltaY = e.touches[0].clientY - lastDragY;
-
-      const sensitivity = 0.007;
-      carDragGroup.rotation.y += deltaX * sensitivity;
-      carDragGroup.rotation.x += deltaY * sensitivity;
-
-      const pitchLimit = Math.PI / 6;
-      carDragGroup.rotation.x = Math.max(-pitchLimit, Math.min(pitchLimit, carDragGroup.rotation.x));
-
-      lastDragX = e.touches[0].clientX;
-      lastDragY = e.touches[0].clientY;
-    };
-
-    const onTouchEnd = () => {
-      isDraggingModel = false;
-    };
-
-    // Hover cursor updates (only show grab if hovering over the car model)
-    const onContainerMouseMove = (e: MouseEvent) => {
-      if (isDraggingModel) return;
-      if (!containerEl || !carObjRef.current) return;
-
-      const rect = containerEl.getBoundingClientRect();
-      mouseNDC.x = ((e.clientX - rect.left) / rect.width) * 2 - 1;
-      mouseNDC.y = -((e.clientY - rect.top) / rect.height) * 2 + 1;
-
-      raycaster.setFromCamera(mouseNDC, camera);
-      const intersects = raycaster.intersectObject(carObjRef.current, true);
-
-      if (intersects.length > 0) {
-        containerEl.style.cursor = "grab";
-      } else {
-        containerEl.style.cursor = "";
-      }
-    };
-
-    const onContainerMouseLeave = () => {
-      if (isDraggingModel) return;
-      if (containerEl) {
-        containerEl.style.cursor = "";
-      }
-    };
-
-    window.addEventListener("keydown", onKeyDown);
-    window.addEventListener("keyup", onKeyUp);
-    document.addEventListener("wheel", onWheel, { passive: false });
-    renderer.domElement.addEventListener("mousedown", onMouseDown);
-    window.addEventListener("mousemove", onMouseMove);
-    window.addEventListener("mouseup", onMouseUp);
-
-    if (containerEl) {
-      containerEl.addEventListener("mousedown", onModelDragStart);
-      containerEl.addEventListener("touchstart", onTouchStart, { passive: false });
-      containerEl.addEventListener("mousemove", onContainerMouseMove);
-      containerEl.addEventListener("mouseleave", onContainerMouseLeave);
-    }
-    window.addEventListener("mousemove", onModelDragMove);
-    window.addEventListener("mouseup", onModelDragEnd);
-    window.addEventListener("touchmove", onTouchMove, { passive: false });
-    window.addEventListener("touchend", onTouchEnd);
-
-    // ── Lighting + loader ────────────────────────────────────────────────────
     const light = setLighting(scene);
     lightRef.current = light;
-    const { loadCharacter } = setCharacter(renderer, scene, camera);
+
+    const purpleLight = new THREE.PointLight(0x8b3dff, 1.5, 18);
+    purpleLight.position.set(-5, 2.5, -3);
+    showcaseGroup.add(purpleLight);
+
+    const pinkLight = new THREE.PointLight(0xff2e88, 1.5, 18);
+    pinkLight.position.set(5, 2, -4);
+    showcaseGroup.add(pinkLight);
+
+    const carContainerGroup = new THREE.Group();
+    carContainerGroup.name = "carContainerGroup";
+    carContainerGroup.rotation.set(-0.02, -0.55, 0);
+    scene.add(carContainerGroup);
+
+    const carDragGroup = new THREE.Group();
+    carDragGroup.name = "carDragGroup";
+    carContainerGroup.add(carDragGroup);
+
+    const wheelMeshes: THREE.Mesh[] = [];
+
+    const { loadCharacter } = setCharacter(
+      renderer,
+      scene,
+      camera,
+      carContainerGroup,
+      showcaseGroup,
+      controls
+    );
 
     const clock = new THREE.Clock();
     let frameId: number;
     let mounted = true;
+    let elapsed = 0;
 
-    // ── Load car model ───────────────────────────────────────────────────────
     loadCharacter().then((gltf) => {
       if (!mounted || !gltf) return;
 
@@ -284,7 +258,6 @@ const Scene = () => {
       carObjRef.current = carObj;
       carDragGroup.add(carObj);
 
-      // Find the 4 wheel meshes by exact group name, fix their pivot
       carObj.traverse((node) => {
         if (!WHEEL_GROUP_NAMES.includes(node.name)) return;
         node.traverse((child) => {
@@ -298,60 +271,104 @@ const Scene = () => {
       setSceneReady(true);
       lightRef.current?.turnOnLights();
 
-      const resizeListener = () => handleResize(renderer, camera, canvasDiv, carObj);
+      const resizeListener = () => handleResize(renderer, camera, canvasDiv, carContainerGroup);
       window.addEventListener("resize", resizeListener);
       (animate as any)._rl = resizeListener;
 
     }).catch((err) => console.error("Car load failed:", err));
 
-    // ── Render loop ──────────────────────────────────────────────────────────
     const animate = () => {
       if (!mounted) return;
       frameId = requestAnimationFrame(animate);
 
       const delta = clock.getDelta();
+      elapsed += delta;
 
-
-      // ── Spin wheels anticlockwise (pivot centred → in-place roll) ─────────
-      for (const mesh of wheelMeshes) mesh.rotation.x += 0.20;
+      if (!prefersReducedMotion) {
+        for (const mesh of wheelMeshes) mesh.rotation.x += 0.20;
+        haloRings.forEach(({ mesh, dir }) => { mesh.rotation.z += delta * 0.18 * dir; });
+        particles.rotation.y += delta * 0.04;
+        particles.position.y = Math.sin(elapsed * 0.3) * 0.12;
+        purpleLight.intensity = Math.sin(elapsed * 1.8) * 0.35 + 1.15;
+        pinkLight.intensity = Math.sin(elapsed * 1.8 + 1.2) * 0.35 + 1.15;
+      }
 
       if (mixerRef.current) mixerRef.current.update(delta);
-      camera.lookAt(0, 0.8, 0);
+      if (controls.enabled) {
+        controls.update();
+      } else {
+        camera.lookAt(0, 0.7, 0);
+      }
       renderer.render(scene, camera);
     };
     animate();
 
-    // ── Cleanup ──────────────────────────────────────────────────────────────
+    const raycaster = new THREE.Raycaster();
+    const mouse = new THREE.Vector2();
+    let isHoveringModel = false;
+    let isDragging = false;
+
+    const updateHoverState = (clientX: number, clientY: number) => {
+      const rect = renderer.domElement.getBoundingClientRect();
+      if (!rect.width || !rect.height) return;
+      mouse.x = ((clientX - rect.left) / rect.width) * 2 - 1;
+      mouse.y = -((clientY - rect.top) / rect.height) * 2 + 1;
+      raycaster.setFromCamera(mouse, camera);
+
+      const hits = raycaster.intersectObjects([carContainerGroup, platform], true);
+      isHoveringModel = hits.length > 0;
+
+      if (isDragging) {
+        renderer.domElement.style.cursor = "grabbing";
+      } else if (isHoveringModel) {
+        renderer.domElement.style.cursor = "grab";
+      } else {
+        renderer.domElement.style.cursor = "default";
+      }
+    };
+
+    const handlePointerMove = (e: PointerEvent) => {
+      updateHoverState(e.clientX, e.clientY);
+    };
+
+    const handlePointerDown = (e: PointerEvent) => {
+      updateHoverState(e.clientX, e.clientY);
+      if (isHoveringModel) {
+        isDragging = true;
+        controls.enabled = true;
+        renderer.domElement.style.cursor = "grabbing";
+      } else {
+        isDragging = false;
+        controls.enabled = false;
+        renderer.domElement.style.cursor = "default";
+      }
+    };
+
+    const handlePointerUp = () => {
+      isDragging = false;
+      controls.enabled = true;
+      renderer.domElement.style.cursor = isHoveringModel ? "grab" : "default";
+    };
+
+    renderer.domElement.addEventListener("pointermove", handlePointerMove);
+    renderer.domElement.addEventListener("pointerdown", handlePointerDown);
+    window.addEventListener("pointerup", handlePointerUp);
+
     return () => {
       mounted = false;
       cancelAnimationFrame(frameId);
       scene.clear();
       renderer.dispose();
       controls.dispose();
-      window.removeEventListener("keydown", onKeyDown);
-      window.removeEventListener("keyup", onKeyUp);
-      document.removeEventListener("wheel", onWheel);
-      renderer.domElement.removeEventListener("mousedown", onMouseDown);
-      window.removeEventListener("mousemove", onMouseMove);
-      window.removeEventListener("mouseup", onMouseUp);
-      if (containerEl) {
-        containerEl.removeEventListener("mousedown", onModelDragStart);
-        containerEl.removeEventListener("touchstart", onTouchStart);
-        containerEl.removeEventListener("mousemove", onContainerMouseMove);
-        containerEl.removeEventListener("mouseleave", onContainerMouseLeave);
-      }
-      window.removeEventListener("mousemove", onModelDragMove);
-      window.removeEventListener("mouseup", onModelDragEnd);
-      window.removeEventListener("touchmove", onTouchMove);
-      window.removeEventListener("touchend", onTouchEnd);
-      document.body.style.cursor = "";
+      renderer.domElement.removeEventListener("pointermove", handlePointerMove);
+      renderer.domElement.removeEventListener("pointerdown", handlePointerDown);
+      window.removeEventListener("pointerup", handlePointerUp);
       const rl = (animate as any)._rl;
       if (rl) window.removeEventListener("resize", rl);
       if (canvasDiv.current) canvasDiv.current.innerHTML = "";
     };
   }, []);
 
-  // Sync intro animation with loading state
   useEffect(() => {
     if (!isLoading && sceneReady && lightRef.current && animationsRef.current) {
       setTimeout(() => {

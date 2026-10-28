@@ -11,6 +11,7 @@
   transform: translateX(-50%);
   top: 0;
   z-index: 9999;
+  mix-blend-mode: difference;
 }
 .header ul {
   font-size: 12px;

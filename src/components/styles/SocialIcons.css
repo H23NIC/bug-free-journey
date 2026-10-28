@@ -39,14 +39,15 @@
   align-items: center;
   justify-content: center;
   font-size: 23px;
-  color: #aaa;
+  color: #000000;
   transition: color 0.25s ease, transform 0.25s ease;
   z-index: 1;
   text-decoration: none;
 }
 
+.si-link:hover,
 .si-link--hovered {
-  color: #ffffff;
+  color: #7b2ff7;
   transform: scale(1.15);
 }
 

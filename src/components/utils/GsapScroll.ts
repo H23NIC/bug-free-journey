@@ -3,7 +3,9 @@ import gsap from "gsap";
 
 export function setCharTimeline(
   character: THREE.Object3D<THREE.Object3DEventMap> | null,
-  camera: THREE.PerspectiveCamera
+  camera: THREE.PerspectiveCamera,
+  showcaseGroup?: THREE.Object3D<THREE.Object3DEventMap> | null,
+  controls?: any
 ) {
   const tl1 = gsap.timeline({
     scrollTrigger: {
@@ -12,6 +14,15 @@ export function setCharTimeline(
       end: "bottom top",
       scrub: true,
       invalidateOnRefresh: true,
+      onUpdate: (self) => {
+        if (controls) {
+          const isAtTop = self.progress < 0.02;
+          controls.enabled = isAtTop;
+          if (isAtTop) {
+            controls.target.set(0, 0.7, 0);
+          }
+        }
+      },
     },
   });
 
@@ -40,38 +51,57 @@ export function setCharTimeline(
       tl1
         .fromTo(
           character.position,
-          { x:  0 },
-          { x: -2.9, duration: 1 },
+          { x: 0, y: 0, z: 0 },
+          { x: -2.8, duration: 1 },
           0
         )
         .fromTo(
           character.scale,
-          { x: 160, y: 160, z: 160 },
-          { x: 160, y: 160, z: 160, duration: 1 },
+          { x: 1, y: 1, z: 1 },
+          { x: 1, y: 1, z: 1, duration: 1 },
           0
         )
-        .fromTo(character.rotation, { y: -0.5, x: 0.05 }, { y: 0.7, x: 0, duration: 1 }, 0)
-        .to(camera.position, { z: 12, y: 1.5 }, 0)
+        .fromTo(character.rotation, { y: -0.55, x: -0.02 }, { y: 0.7, x: 0, duration: 1 }, 0)
+        .fromTo(
+          camera.position,
+          { x: 1.1, y: 3.2, z: 8.2 },
+          { x: 0, y: 1.4, z: 11, duration: 1 },
+          0
+        )
         .to(".landing-container", { opacity: 0, duration: 0.4 }, 0)
         .to(".landing-container", { y: "40%", duration: 0.8 }, 0)
         .fromTo(".about-me", { opacity: 0, y: "20px" }, { opacity: 1, y: "0px", duration: 0.8 }, 0.2);
+
+      if (showcaseGroup) {
+        tl1
+          .to(
+            showcaseGroup.position,
+            { y: -12, duration: 1, ease: "power2.inOut" },
+            0
+          )
+          .to(
+            showcaseGroup.scale,
+            { x: 0.01, y: 0.01, z: 0.01, duration: 0.8, ease: "power2.in" },
+            0
+          );
+      }
 
       tl2
         .to(".about-section", { opacity: 0, y: "-20%", duration: 2, ease: "power2.in" }, 0)
         .to(".about-me", { opacity: 0, y: "-30px", duration: 1.5, ease: "power2.in" }, 0)
         .to(
           character.position,
-          { x: -0.4, duration: 3.5, delay: 0.3, ease: "power2.inOut" },
+          { x: -0.4, y: 0, z: 0, duration: 3.5, delay: 0.3, ease: "power2.inOut" },
           0
         )
         .to(
           character.scale,
-          { x: 105, y: 105, z: 105, duration: 3.5, delay: 0.3, ease: "power2.inOut" },
+          { x: 0.85, y: 0.85, z: 0.85, duration: 3.5, delay: 0.3, ease: "power2.inOut" },
           0
         )
         .to(
           camera.position,
-          { z: 16.5, y: 2.0, duration: 4, delay: 0.3, ease: "power2.inOut" },
+          { z: 15, y: 1.6, duration: 4, delay: 0.3, ease: "power2.inOut" },
           0
         )
         .fromTo(

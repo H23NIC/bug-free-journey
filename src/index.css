@@ -67,7 +67,7 @@ main {
 body {
   margin: 0;
   height: auto;
-  background-color: #000;
+  background-color: #0b080c;   /* dark bg shows under career/work/contact sections */
   flex-grow: 1;
   --cWidth: calc(100% - 30px);
   --cMaxWidth: 1920px;
@@ -84,6 +84,27 @@ body {
   width: 100%;
   margin: auto;
   position: relative;
+}
+
+/* ── ScrollSmoother wrapper must sit ABOVE the fixed Three.js canvas ─────── */
+#smooth-wrapper {
+  position: relative;
+  z-index: 10;       /* above .character-model canvas (z-index 2) */
+  isolation: isolate;
+  pointer-events: none; /* allows drags to pass through to the 3D canvas */
+}
+
+/* Re-enable pointer events for sections and interactive elements inside smooth-wrapper */
+.about-section,
+.whatIDO,
+.career-section,
+.work-section,
+.contact-section,
+#smooth-content a,
+#smooth-content button,
+#smooth-content input,
+#smooth-content textarea {
+  pointer-events: auto;
 }
 
 .container1 {

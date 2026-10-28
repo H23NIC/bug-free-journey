@@ -1,79 +1,61 @@
+/* ═══════════════════════════════════════════════════════════════════════════
+   LANDING SECTION — 3D Showroom Hero  (light theme, pure CSS)
+   ═══════════════════════════════════════════════════════════════════════════ */
+
 .landing-section {
   width: 100%;
   max-width: var(--cMaxWidth);
   margin: auto;
   position: relative;
   height: var(--vh);
-}
-
-.landing-container {
-  width: var(--cWidth);
-  margin: auto;
-  height: 100%;
-  position: relative;
-  max-width: var(--cMaxWidth);
-}
-
-.landing-circle1 {
-  top: 0%;
-  left: 0%;
-  z-index: 15;
-  position: fixed;
-  width: 300px;
-  height: 300px;
-  background-color: #fb8dff;
-  box-shadow: inset -50px 40px 50px rgba(84, 0, 255, 0.6);
-  filter: blur(60px);
-  border-radius: 50%;
-  animation: loadingCircle 5s linear infinite;
-}
-
-.nav-fade {
-  position: fixed;
-  top: 0;
-  width: 100%;
-  height: 130px;
-  background-image: linear-gradient(0deg,
-      transparent,
-      var(--backgroundColor) 70%);
+  overflow: hidden;
+  background: transparent;   /* Three.js canvas provides the visual bg */
   pointer-events: none;
-  z-index: 12;
-  opacity: 0;
-  left: 0;
 }
 
-@keyframes loadingCircle {
-  0% {
-    transform: translate(-95%, -75%) rotateZ(0deg);
-  }
-
-  100% {
-    transform: translate(-95%, -75%) rotateZ(360deg);
-  }
+/* Bottom fade — disabled so showroom blends seamlessly without dark band */
+.landing-section::after {
+  display: none !important;
 }
 
-.landing-circle2 {
-  top: 50%;
-  right: 0%;
-  transform: translate(calc(100% - 2px), -50%);
+/* ── Floor shadow (neon glow under car) ──────────────────────────────────── */
+.landing-floor-shadow {
+  display: none !important;
+}
+
+/* ══════════════════════════════════════════════════════════════════════════
+   NAV FADE
+   ══════════════════════════════════════════════════════════════════════════ */
+.nav-fade {
+  display: none !important;
+}
+
+/* ══════════════════════════════════════════════════════════════════════════
+   ORBIT HINT
+   ══════════════════════════════════════════════════════════════════════════ */
+.landing-orbit-hint {
+  position: absolute;
+  bottom: 28px;
+  left: 50%;
+  transform: translateX(-50%);
+  font-size: 12px;
+  letter-spacing: 1.5px;
+  color: rgba(123, 47, 247, 0.65);
+  font-weight: 500;
+  white-space: nowrap;
   z-index: 9;
-  position: fixed;
-  display: none;
-  width: 300px;
-  height: 300px;
-  background-color: #fb8dff;
-  box-shadow: inset -50px 40px 50px rgba(84, 0, 255, 0.6);
-  filter: blur(50px);
-  border-radius: 50%;
-  animation: loadingCircle2 5s linear infinite;
+  pointer-events: none;
+  text-transform: uppercase;
+  animation: hintFadeIn 2s ease 3s both;
+}
+@keyframes hintFadeIn {
+  from { opacity: 0; transform: translateX(-50%) translateY(6px); }
+  to   { opacity: 1; transform: translateX(-50%) translateY(0); }
 }
 
-@keyframes loadingCircle2 {
-  100% {
-    transform: translate(calc(100% - 2px), -50%) rotate(360deg);
-  }
-}
-
+/* ══════════════════════════════════════════════════════════════════════════
+   3D CAR CANVAS
+   ══════════════════════════════════════════════════════════════════════════ */
 .landing-video,
 .landing-image {
   position: absolute;
@@ -90,19 +72,14 @@
 }
 
 .character-rim {
-  position: absolute;
-  width: 400px;
-  height: 400px;
-  z-index: 1;
-  background-color: #f59bf8;
-  transform: translate(-50%, 36%) scaleX(1.4);
-  box-shadow: inset 66px 35px 85px 0px rgba(85, 0, 255, 0.65);
-  filter: blur(50px);
-  border-radius: 50%;
-  top: 50%;
-  left: 50%;
-  transform: translate(-50%, 100%) scale(1.4);
-  opacity: 0;
+  display: none !important;
+}
+
+/* ── Character container ─────────────────────────────────────────────────── */
+.character-container {
+  position: relative;
+  width: 100%;
+  height: 100%;
 }
 
 .character-model {
@@ -114,35 +91,14 @@
   transform: translateX(-50%);
   width: 100%;
   left: 50%;
-  z-index: 0;
+  z-index: 2;
   bottom: 50px;
-  pointer-events: inherit;
+  pointer-events: none;
 }
 
-.character-model::after {
-  content: "";
-  width: 100vw;
-  height: 250px;
-  background-image: linear-gradient(to bottom,
-      transparent,
-      var(--backgroundColor) 70%);
-  bottom: -50px;
-  left: 50%;
-  transform: translateX(-50%);
-  z-index: 9;
-  position: absolute;
-}
-
+.character-model::after,
 .character-model::before {
-  content: "";
-  width: 100vw;
-  height: 700px;
-  background-color: var(--backgroundColor);
-  top: 100%;
-  left: 50%;
-  transform: translateX(-50%);
-  z-index: 9;
-  position: absolute;
+  display: none !important;
 }
 
 .character-loaded .character-rim {
@@ -151,24 +107,47 @@
   opacity: 0;
 }
 
+/* Canvas: auto pointer-events so OrbitControls drag works,
+   but wheel/scroll events bubble through to GSAP ScrollSmoother */
 .character-model canvas {
   position: relative;
-  pointer-events: none;
+  pointer-events: auto;
   z-index: 2;
+  cursor: default;
 }
 
 .character-hover {
   position: absolute;
-  width: 280px;
-  height: 280px;
-  top: 50%;
-  left: 50%;
+  width: 280px; height: 280px;
+  top: 50%; left: 50%;
   z-index: 3;
   transform: translate(-50%, -50%);
   border-radius: 50%;
   pointer-events: none;
 }
 
+/* ══════════════════════════════════════════════════════════════════════════
+   LAYOUT
+   ══════════════════════════════════════════════════════════════════════════ */
+.landing-container {
+  width: var(--cWidth);
+  margin: auto;
+  height: 100%;
+  position: relative;
+  max-width: var(--cMaxWidth);
+  z-index: 15;        /* above canvas (z-index 2) and fixed model (z-index 11) */
+  pointer-events: none;
+}
+
+/* Re-enable pointer events on interactive elements inside the container */
+.landing-container a,
+.landing-container button {
+  pointer-events: auto;
+}
+
+/* ══════════════════════════════════════════════════════════════════════════
+   INTRO — "Hello! I'm / H23NIC1"
+   ══════════════════════════════════════════════════════════════════════════ */
 .landing-intro {
   position: absolute;
   z-index: 9;
@@ -178,9 +157,9 @@
 
 .landing-intro h2 {
   margin: 0;
-  color: var(--accentColor);
+  color: #7b2ff7;
   font-size: 22px;
-  font-weight: 300;
+  font-weight: 400;
   letter-spacing: 2px;
 }
 
@@ -189,183 +168,212 @@
   letter-spacing: 2px;
   font-size: 28px;
   line-height: 28px;
-  font-weight: 500;
+  font-weight: 700;
   font-family: "Geist", sans-serif;
+  color: #0d0c12;
 }
 
-/* .landing-intro h1 span {
-   font-weight: 200; 
-} */
-
+/* ══════════════════════════════════════════════════════════════════════════
+   INFO — "A Creative / DEVELOPER / DESIGNER"
+   ══════════════════════════════════════════════════════════════════════════ */
 .landing-info {
   position: absolute;
   right: 50%;
   transform: translateX(50%);
-  bottom: 20px;
+  bottom: 40px;
   top: inherit;
-  z-index: 9;
+  z-index: 15;
+}
+
+.landing-sparkle {
+  position: absolute;
+  color: rgba(196, 129, 255, 0.7);
+  pointer-events: none;
+  font-size: 13px;
+  filter: drop-shadow(0 0 6px rgba(196, 129, 255, 0.9));
+  animation: sparkleTwinkle 3s ease-in-out infinite alternate;
+  user-select: none;
+}
+.landing-sparkle-1 {
+  top: -8px;
+  left: -22px;
+  animation-delay: 0.2s;
+}
+.landing-sparkle-2 {
+  top: 28px;
+  left: -32px;
+  font-size: 10px;
+  opacity: 0.6;
+  animation-delay: 1.4s;
+}
+
+@keyframes sparkleTwinkle {
+  0% {
+    transform: scale(0.8) rotate(0deg);
+    opacity: 0.35;
+  }
+  50% {
+    transform: scale(1.15) rotate(45deg);
+    opacity: 0.9;
+  }
+  100% {
+    transform: scale(0.9) rotate(90deg);
+    opacity: 0.45;
+  }
 }
 
 .landing-info h3 {
   font-size: 22px;
   letter-spacing: 2px;
   font-weight: 300;
-  color: var(--accentColor);
+  color: #d1b3ff;
   margin: 0;
+  margin-bottom: 2px;
 }
 
+/* Shared font styling for both behind (violet) and foreground (white) role titles */
 .landing-info h2 {
-  margin: 0;
-  margin-top: -20px;
-  margin-left: 20px;
   font-family: "Geist", sans-serif;
-  font-weight: 600;
-  font-size: 32px;
+  font-weight: 800;
+  font-size: 34px;
   line-height: 40px;
+  letter-spacing: 2px;
+  text-transform: uppercase;
+}
+
+/* Background purple depth layer */
+h2.landing-info-h2 {
+  color: #9855d4;
+  width: 125%;
+  margin: 0;
+  position: relative;
+  margin-left: -6px;
+  text-shadow: none;
+  opacity: 1;
+  pointer-events: none;
+  user-select: none;
+  z-index: 1;
+  -webkit-mask-image: linear-gradient(180deg, #000 0%, #000 50%, transparent 100%);
+  mask-image: linear-gradient(180deg, #000 0%, #000 50%, transparent 100%);
+}
+
+/* Foreground white text layer — sitting in front of depth layer */
+.landing-info h2:not(.landing-info-h2) {
+  margin: 0;
+  margin-top: -0.48em;
+  margin-left: 22px;
   position: relative;
   display: flex;
   flex-wrap: nowrap;
-  text-transform: uppercase;
-  letter-spacing: 2px;
+  color: #ffffff;
+  z-index: 5;
+  text-shadow: none;
+}
+
+.landing-h2-info,
+.landing-h2-info-1,
+.landing-h2-1,
+.landing-h2-2 {
+  display: block;
+  white-space: nowrap;
 }
 
 .landing-h2-info-1 {
   position: absolute;
   top: 0;
-}
-
-h2.landing-info-h2 {
-  color: #c481ff;
-  font-size: 42px;
-  width: 120%;
-  margin: 0;
-  font-family: "Geist", sans-serif;
-  font-weight: 600;
-  position: relative;
-  margin-left: -5px;
+  left: 0;
 }
 
 .landing-h2-2 {
   position: absolute;
   top: 0;
-}
-
-.landing-info-h2::after {
-  content: "";
-  position: absolute;
-  width: 100%;
-  height: 120%;
-  z-index: 3;
-  background-image: linear-gradient(0deg,
-      var(--backgroundColor) 40%,
-      rgba(0, 0, 0, 0) 110%);
-  top: 0;
   left: 0;
 }
 
+/* Ambient glow orbs — hidden */
+.cosmic-smoke,
+.constellation-svg,
+.landing-circle1,
+.landing-circle2 {
+  display: none !important;
+}
+
+/* ══════════════════════════════════════════════════════════════════════════
+   RESPONSIVE — 500px+
+   ══════════════════════════════════════════════════════════════════════════ */
 @media screen and (min-width: 500px) {
-  .landing-circle2 {
-    display: block;
-  }
-
-  .character-model {
-    z-index: 0;
-  }
-
-  .landing-info h3 {
-    font-size: 18px;
-  }
-
-  .landing-intro h2 {
-    font-size: 18px;
-  }
-
-  .landing-intro h1 {
-    font-size: 30px;
-    line-height: 30px;
-  }
-
-  .landing-info h2 {
-    font-size: 35px;
-    line-height: 40px;
-  }
-
-  h2.landing-info-h2 {
-    font-size: 38px;
-  }
+  .character-model { z-index: 5; }
+  .landing-info h3   { font-size: 18px; }
+  .landing-intro h2  { font-size: 18px; }
+  .landing-intro h1  { font-size: 30px; line-height: 30px; }
+  .landing-info h2 { font-size: 35px; line-height: 40px; }
 }
 
+/* ══════════════════════════════════════════════════════════════════════════
+   RESPONSIVE — 768px+
+   ══════════════════════════════════════════════════════════════════════════ */
 @media screen and (min-width: 768px) {
-  .character-model {
-    height: 80vh;
-  }
-
-  .landing-intro h2 {
-    font-size: 25px;
-  }
-
-  .landing-intro h1 {
-    font-size: 40px;
-    line-height: 35px;
-  }
-
-  .landing-info h3 {
-    font-size: 20px;
-  }
-
-  .landing-info h2 {
-    font-size: 38px;
-    line-height: 42px;
-  }
-
-  h2.landing-info-h2 {
-    font-size: 45px;
-  }
+  .character-model   { height: 80vh; }
+  .landing-intro h2  { font-size: 25px; }
+  .landing-intro h1  { font-size: 40px; line-height: 35px; }
+  .landing-info h3   { font-size: 20px; }
+  .landing-info h2 { font-size: 38px; line-height: 42px; }
 }
 
+/* ══════════════════════════════════════════════════════════════════════════
+   RESPONSIVE — 1025px+ (desktop)
+   ══════════════════════════════════════════════════════════════════════════ */
 @media screen and (min-width: 1025px) {
   .character-model {
     height: 100vh;
+    top: 0;
     bottom: 0;
-    z-index: 11;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 100%;
+    z-index: 2;          /* behind UI text (z-index 15) */
     position: fixed;
+    pointer-events: none;
   }
-
+  /* Let the canvas itself receive pointer events (drag / orbit) */
+  .character-model canvas {
+    pointer-events: auto;
+  }
   .character-model::after,
-  .character-model::before {
-    display: none;
-  }
+  .character-model::before { display: none; }
 
   .landing-intro {
-    top: 15%;
+    top: 22%;
+    left: auto;
+    right: 66%;
+    transform: translate(0%, -50%);
+  }
+
+  .landing-info {
+    bottom: auto;
+    top: 76%;
+    z-index: 15;
+    text-align: left;
+    transform: translate(0%, -50%);
+    right: auto;
+    left: 66%;
+  }
+}
+
+/* ══════════════════════════════════════════════════════════════════════════
+   RESPONSIVE — 1200px+
+   ══════════════════════════════════════════════════════════════════════════ */
+@media screen and (min-width: 1200px) {
+  .landing-intro {
+    top: 22%;
     left: auto;
     right: 70%;
     transform: translate(0%, -50%);
   }
-
   .landing-info {
     bottom: auto;
     top: 76%;
-    z-index: inherit;
-    text-align: left;
-    transform: translate(0%, -50%);
-    right: auto;
-    left: 67%;
-  }
-}
-
-@media screen and (min-width: 1200px) {
-  .landing-intro {
-    top: 15%;
-    left: auto;
-    right: 74%;
-    transform: translate(0%, -50%);
-  }
-
-  .landing-info {
-    bottom: auto;
-    top: 76%;
-    z-index: inherit;
+    z-index: 15;
     text-align: left;
     transform: translate(0%, -50%);
     right: auto;
@@ -373,26 +381,12 @@ h2.landing-info-h2 {
   }
 }
 
+/* ══════════════════════════════════════════════════════════════════════════
+   RESPONSIVE — 1600px+
+   ══════════════════════════════════════════════════════════════════════════ */
 @media screen and (min-width: 1600px) {
-  .landing-intro h2 {
-    font-size: 35px;
-  }
-
-  .landing-intro h1 {
-    font-size: 60px;
-    line-height: 55px;
-  }
-
-  .landing-info h3 {
-    font-size: 26px;
-  }
-
-  .landing-info h2 {
-    font-size: 50px;
-    line-height: 52px;
-  }
-
-  h2.landing-info-h2 {
-    font-size: 58px;
-  }
+  .landing-intro h2  { font-size: 35px; }
+  .landing-intro h1  { font-size: 60px; line-height: 55px; }
+  .landing-info h3   { font-size: 35px; }
+  .landing-info h2 { font-size: 65px; line-height: 62px; }
 }
