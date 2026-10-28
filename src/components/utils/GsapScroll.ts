@@ -110,7 +110,7 @@ export function setCharTimeline(
           { pointerEvents: "none", delay: 1, duration: 2 },
           0
         )
-        .to(character.rotation, { y: 2.55, x: 0.3, delay: 0.3, duration: 3.5, ease: "power2.inOut" }, 0)
+        .to(character.rotation, { y: 2.55, x: 0, delay: 0.3, duration: 3.5, ease: "power2.inOut" }, 0)
         .fromTo(
           ".what-box-in",
           { display: "none" },
@@ -132,7 +132,7 @@ export function setCharTimeline(
           0
         )
         .fromTo(".whatIDO", { y: 0 }, { y: "15%", duration: 2 }, 0)
-        .to(character.rotation, { y: 2.55, x: 0.3, duration: 3, delay: 1 }, 0);
+        .to(character.rotation, { y: 2.55, x: 0, duration: 3, delay: 1 }, 0);
     }
   } else {
     if (character) {
